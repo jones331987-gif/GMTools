@@ -139,9 +139,8 @@
 
   /* ===== ENEMY GRID ===== */
   .enemy-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 12px;
+    columns: 320px;
+    column-gap: 12px;
   }
 
   .enemy-card {
@@ -151,6 +150,10 @@
     overflow: hidden;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
+    break-inside: avoid;
+    margin-bottom: 12px;
+    display: inline-block;
+    width: 100%;
   }
   .enemy-card:hover { border-color: var(--accent); box-shadow: 0 0 12px rgba(196,147,58,0.1); }
   .enemy-card.expanded { border-color: var(--accent); }
@@ -504,6 +507,76 @@
   }
   .add-btn:hover { background: rgba(196,147,58,0.2); }
 
+  /* ===== ENCOUNTER BUILDER TWO-PANEL ===== */
+  .enc-two-panel {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .enc-two-panel { grid-template-columns: 1fr; } }
+
+  .enc-source-panel, .enc-right-panel { }
+  .enc-panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .enc-filters { margin-bottom: 10px; }
+
+  /* Source enemy draggable cards */
+  .enc-source-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 5px;
+    cursor: grab;
+    transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+    user-select: none;
+  }
+  .enc-source-card:hover { border-color: var(--accent); box-shadow: 0 0 8px rgba(196,147,58,0.1); }
+  .enc-source-card.dragging { opacity: 0.4; cursor: grabbing; }
+  .enc-source-card .drag-handle {
+    color: var(--muted); font-size: 12px; cursor: grab; flex-shrink: 0;
+  }
+  .enc-source-card .sc-name {
+    font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); flex: 1;
+  }
+  .enc-source-card .sc-stats {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted);
+  }
+  .enc-source-card .sc-add {
+    background: rgba(196,147,58,0.1); border: 1px solid rgba(196,147,58,0.25);
+    border-radius: 2px; color: var(--accent); font-size: 14px; width: 22px; height: 22px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .enc-source-card .sc-add:hover { background: rgba(196,147,58,0.25); }
+
+  /* Drop zone */
+  .enc-drop-zone {
+    min-height: 80px;
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .enc-drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(196,147,58,0.05);
+  }
+  .drop-hint {
+    text-align: center; padding: 16px;
+    color: var(--muted); font-style: italic; font-size: 13px;
+  }
+
   .roster-section {
     display: grid;
     grid-template-columns: 1fr 300px;
@@ -719,34 +792,57 @@
 <!-- ===================== ENCOUNTER BUILDER ===================== -->
 <div id="page-encounter" class="page">
   <div class="section-title">Encounter Builder</div>
-  <div class="quick-add-bar">
-    <select id="enc-picker">
-      <option value="">— Select an enemy to add —</option>
-    </select>
-    <button class="add-btn" onclick="addToRoster()">+ Add to Roster</button>
-    <button class="add-btn" style="background:rgba(196,58,58,0.1);border-color:rgba(196,58,58,0.3);color:#c43a3a" onclick="clearRoster()">Clear All</button>
-  </div>
-  <div class="roster-section">
-    <div>
-      <div id="roster-list"><div class="empty-state">No enemies in roster yet.<br>Select from the dropdown above.</div></div>
-    </div>
-    <div class="summary-panel">
-      <h3>⚡ Encounter Summary</h3>
-      <div class="sum-row"><span class="sk">Total Units</span><span class="sv big" id="sum-units">0</span></div>
-      <div class="sum-row"><span class="sk">Total HP</span><span class="sv" id="sum-hp">0</span></div>
-      <div class="sum-row"><span class="sk">Total Stamina</span><span class="sv" id="sum-stam">0</span></div>
-      <div class="sum-row"><span class="sk">Total Mana</span><span class="sv" id="sum-mana">0</span></div>
-      <div class="exp-reward-section">
-        <div class="section-title" style="margin-bottom:10px">EXP Reward</div>
-        <div class="exp-reward-row"><span>Raw Exp Pool</span><span id="raw-exp">0</span></div>
-        <div class="exp-reward-row"><span>After Formula (÷ players)</span><span id="calc-exp-display">—</span></div>
-        <div style="margin-top:8px">
-          <label class="calc-label">Players in encounter</label>
-          <input type="number" class="calc-input" id="player-count" value="4" min="1" max="12" onchange="updateSummary()">
+  <div class="enc-two-panel">
+
+    <!-- LEFT: Source list -->
+    <div class="enc-source-panel">
+      <div class="enc-panel-title">Enemy Roster</div>
+      <div class="enc-filters">
+        <input type="text" class="search-box" id="enc-search2" placeholder="Search…" oninput="filterEncSource()" style="margin-bottom:8px">
+        <div class="filter-group" style="flex-wrap:wrap;gap:4px">
+          <button class="filter-btn tier0 active" data-filter="tier" data-val="0" onclick="toggleEncFilter(this)">T0</button>
+          <button class="filter-btn tier1 active" data-filter="tier" data-val="1" onclick="toggleEncFilter(this)">T1</button>
+          <button class="filter-btn tier2 active" data-filter="tier" data-val="2" onclick="toggleEncFilter(this)">T2</button>
+          <button class="filter-btn mook active" data-filter="cat" data-val="mook" onclick="toggleEncFilter(this)">Mooks</button>
+          <button class="filter-btn elite active" data-filter="cat" data-val="elite" onclick="toggleEncFilter(this)">Elites</button>
+          <button class="filter-btn boss active" data-filter="cat" data-val="boss" onclick="toggleEncFilter(this)">Bosses</button>
         </div>
       </div>
-      <button class="copy-btn" onclick="copyRoster()">📋 Copy Roster to Clipboard</button>
+      <div id="enc-source-list"></div>
     </div>
+
+    <!-- RIGHT: Drop zone + summary -->
+    <div class="enc-right-panel">
+      <div class="enc-panel-title">Active Encounter
+        <button class="add-btn" style="float:right;background:rgba(196,58,58,0.1);border-color:rgba(196,58,58,0.3);color:#c43a3a;padding:4px 10px;font-size:9px" onclick="clearRoster()">Clear All</button>
+      </div>
+      <div id="enc-drop-zone" class="enc-drop-zone"
+        ondragover="onDropZoneDragOver(event)"
+        ondragleave="onDropZoneDragLeave(event)"
+        ondrop="onDropZoneDrop(event)">
+        <div id="roster-list" style="min-height:60px"></div>
+        <div id="drop-hint" class="drop-hint">Drag enemies here to build your encounter</div>
+      </div>
+
+      <div class="summary-panel" style="margin-top:14px">
+        <h3>⚡ Encounter Summary</h3>
+        <div class="sum-row"><span class="sk">Total Units</span><span class="sv big" id="sum-units">0</span></div>
+        <div class="sum-row"><span class="sk">Total HP</span><span class="sv" id="sum-hp">0</span></div>
+        <div class="sum-row"><span class="sk">Total Stamina</span><span class="sv" id="sum-stam">0</span></div>
+        <div class="sum-row"><span class="sk">Total Mana</span><span class="sv" id="sum-mana">0</span></div>
+        <div class="exp-reward-section">
+          <div class="section-title" style="margin-bottom:10px">EXP Reward</div>
+          <div class="exp-reward-row"><span>Raw Exp Pool</span><span id="raw-exp">0</span></div>
+          <div class="exp-reward-row"><span>After Formula (÷ players)</span><span id="calc-exp-display">—</span></div>
+          <div style="margin-top:8px">
+            <label class="calc-label">Players in encounter</label>
+            <input type="number" class="calc-input" id="player-count" value="4" min="1" max="12" onchange="updateSummary()">
+          </div>
+        </div>
+        <button class="copy-btn" onclick="copyRoster()">📋 Copy Roster to Clipboard</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1446,22 +1542,82 @@ function toggleCard(card) {
 }
 
 // ============================================================
-// ENCOUNTER BUILDER
+// ENCOUNTER BUILDER — DRAG & DROP
 // ============================================================
-function populatePicker() {
-  const sel = document.getElementById('enc-picker');
-  ENEMIES.forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.name;
-    opt.textContent = `[T${e.tier} ${e.cat.charAt(0).toUpperCase() + e.cat.slice(1)}] ${e.name}`;
-    sel.appendChild(opt);
-  });
+const encTierFilters = new Set(['0','1','2']);
+const encCatFilters  = new Set(['mook','elite','boss']);
+let draggedEnemy = null;
+
+function toggleEncFilter(btn) {
+  const filter = btn.dataset.filter;
+  const val    = btn.dataset.val;
+  const set    = filter === 'tier' ? encTierFilters : encCatFilters;
+  if (set.has(val)) { set.delete(val); btn.classList.remove('active'); }
+  else              { set.add(val);    btn.classList.add('active'); }
+  filterEncSource();
 }
 
-function addToRoster() {
-  const name = document.getElementById('enc-picker').value;
-  if (!name) return;
-  const enemy = ENEMIES.find(e => e.name === name);
+function filterEncSource() {
+  const query = (document.getElementById('enc-search2').value || '').toLowerCase();
+  const list  = document.getElementById('enc-source-list');
+  list.innerHTML = '';
+  const filtered = ENEMIES.filter(e =>
+    encTierFilters.has(String(e.tier)) &&
+    encCatFilters.has(e.cat) &&
+    e.name.toLowerCase().includes(query)
+  );
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state">No enemies match filters.</div>';
+    return;
+  }
+  filtered.forEach(e => list.appendChild(buildSourceCard(e)));
+}
+
+function buildSourceCard(e) {
+  const div = document.createElement('div');
+  div.className = 'enc-source-card';
+  div.draggable = true;
+  div.dataset.name = e.name;
+
+  const catCls = `badge-${e.cat}`;
+  div.innerHTML = `
+    <span class="drag-handle">⠿</span>
+    <span class="enemy-badge ${catCls}" style="font-size:8px">${e.cat.charAt(0).toUpperCase()+e.cat.slice(1)}</span>
+    <span class="sc-name">${e.name}</span>
+    <span class="sc-stats">T${e.tier} · ${e.hp}HP</span>
+    <button class="sc-add" onclick="addToRosterByName('${e.name.replace(/'/g,"\\'")}'); event.stopPropagation()">+</button>
+  `;
+
+  div.addEventListener('dragstart', e2 => {
+    draggedEnemy = e.name;
+    div.classList.add('dragging');
+    e2.dataTransfer.effectAllowed = 'copy';
+    e2.dataTransfer.setData('text/plain', e.name);
+  });
+  div.addEventListener('dragend', () => {
+    draggedEnemy = null;
+    div.classList.remove('dragging');
+  });
+  return div;
+}
+
+function onDropZoneDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  document.getElementById('enc-drop-zone').classList.add('drag-over');
+}
+function onDropZoneDragLeave(e) {
+  document.getElementById('enc-drop-zone').classList.remove('drag-over');
+}
+function onDropZoneDrop(e) {
+  e.preventDefault();
+  document.getElementById('enc-drop-zone').classList.remove('drag-over');
+  const name = e.dataTransfer.getData('text/plain') || draggedEnemy;
+  if (name) addToRosterByName(name);
+}
+
+function addToRosterByName(name) {
+  const enemy = ENEMIES.find(en => en.name === name);
   if (!enemy) return;
   const existing = roster.find(r => r.enemy.name === name);
   if (existing) { existing.count++; }
@@ -1482,16 +1638,19 @@ function clearRoster() {
 
 function renderRoster() {
   const list = document.getElementById('roster-list');
+  const hint = document.getElementById('drop-hint');
   if (!roster.length) {
-    list.innerHTML = '<div class="empty-state">No enemies in roster yet.</div>';
+    list.innerHTML = '';
+    if (hint) hint.style.display = 'block';
     updateSummary();
     return;
   }
+  if (hint) hint.style.display = 'none';
   list.innerHTML = roster.map((r, i) => {
     const e = r.enemy;
     const catCls = `badge-${e.cat}`;
     return `<div class="roster-item">
-      <span class="enemy-badge ${catCls}" style="font-size:8px">${e.cat.toUpperCase()}</span>
+      <span class="enemy-badge ${catCls}" style="font-size:8px">${e.cat.charAt(0).toUpperCase()+e.cat.slice(1)}</span>
       <span class="r-name">${e.name}</span>
       <span class="r-stats">T${e.tier} · ${e.hp}HP/${e.stam}S${e.mana > 0 ? '/'+e.mana+'M' : ''}</span>
       <div class="count-ctrl">
@@ -1528,17 +1687,14 @@ function updateSummary() {
 
 function copyRoster() {
   if (!roster.length) return;
-  let txt = '⚔ ENCOUNTER ROSTER\n';
-  txt += '─'.repeat(30) + '\n';
+  let txt = '⚔ ENCOUNTER ROSTER\n' + '─'.repeat(30) + '\n';
   roster.forEach(r => {
     txt += `${r.count}× ${r.enemy.name} (T${r.enemy.tier} ${r.enemy.cat}) — ${r.enemy.hp}HP/${r.enemy.stam}S\n`;
   });
   txt += '─'.repeat(30) + '\n';
   const players = parseInt(document.getElementById('player-count').value) || 4;
   let rawExp = 0;
-  roster.forEach(r => {
-    rawExp += (r.enemy.cat === 'mook' ? 1 : r.enemy.cat === 'elite' ? 2 : 4) * r.count;
-  });
+  roster.forEach(r => { rawExp += (r.enemy.cat === 'mook' ? 1 : r.enemy.cat === 'elite' ? 2 : 4) * r.count; });
   const perPlayer = Math.min(4, Math.floor((rawExp * 2) / players));
   txt += `EXP reward: ${perPlayer}/player (${players} players, ${rawExp} raw exp)\n`;
   navigator.clipboard.writeText(txt).then(() => {
@@ -1645,7 +1801,7 @@ function applyExpToAll() {
 // INIT
 // ============================================================
 filterEnemies();
-populatePicker();
+filterEncSource();
 renderCharacters();
 updateSummary();
 </script>
