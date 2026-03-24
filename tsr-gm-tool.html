@@ -690,10 +690,10 @@
 <header>
   <div class="logo">TSR <span>GM Interface</span></div>
   <nav>
-    <button class="nav-btn active" onclick="showPage('encyclopedia')">⚔ Mooks Encyclopedia</button>
-    <button class="nav-btn" onclick="showPage('encounter')">☠ Encounter Builder</button>
-    <button class="nav-btn" onclick="showPage('exptracker')">★ EXP Tracker</button>
-    <button class="nav-btn" onclick="showPage('leveling')">▲ Leveling Guide</button>
+    <button class="nav-btn active" onclick="showPage('encyclopedia', this)">⚔ Mooks Encyclopedia</button>
+    <button class="nav-btn" onclick="showPage('encounter', this)">☠ Encounter Builder</button>
+    <button class="nav-btn" onclick="showPage('exptracker', this)">★ EXP Tracker</button>
+    <button class="nav-btn" onclick="showPage('leveling', this)">▲ Leveling Guide</button>
   </nav>
 </header>
 
@@ -1361,11 +1361,11 @@ let characters = [
 // ============================================================
 // NAV
 // ============================================================
-function showPage(id) {
+function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 
 // ============================================================
