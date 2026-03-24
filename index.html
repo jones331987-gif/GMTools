@@ -1029,7 +1029,10 @@
         <label class="calc-label">Players <span style="color:var(--muted);font-size:9px">(auto from session)</span></label>
         <input type="number" class="calc-input" id="calc-players" value="4" min="1">
       </div>
-      <button class="calc-btn" onclick="calculateExp()">Calculate EXP</button>
+      <div style="display:flex;gap:6px">
+        <button class="calc-btn" style="flex:1" onclick="calculateExp()">Calculate EXP</button>
+        <button class="calc-btn" style="flex:0 0 auto;background:rgba(196,58,58,0.08);border-color:rgba(196,58,58,0.25);color:#c43a3a" onclick="clearCalculator()">Clear</button>
+      </div>
       <div class="calc-result" id="calc-result" style="display:none"></div>
       <button class="calc-btn" id="apply-exp-btn" style="display:none;margin-top:8px;background:rgba(122,184,122,0.1);border-color:rgba(122,184,122,0.3);color:#7ab87a" onclick="applyExpToSession()">✓ Apply to Session Characters</button>
     </div>
@@ -2007,6 +2010,16 @@ function addCharacter() {
   document.getElementById('new-char-name').value = '';
   hideAddChar();
   renderCharacterSource();
+}
+
+function clearCalculator() {
+  document.getElementById('calc-mooks').value  = 0;
+  document.getElementById('calc-elites').value = 0;
+  document.getElementById('calc-bosses').value = 0;
+  document.getElementById('calc-quest').value  = 1;
+  document.getElementById('calc-result').style.display = 'none';
+  document.getElementById('apply-exp-btn').style.display = 'none';
+  lastCalcExpPerPlayer = 0;
 }
 
 function calculateExp() {
