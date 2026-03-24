@@ -348,6 +348,8 @@
     border-radius: 6px;
     padding: 20px;
     position: sticky; top: 76px;
+    overflow: hidden;
+    min-width: 0;
   }
   .calc-title {
     font-family: 'Cinzel', serif;
@@ -1029,9 +1031,9 @@
         <label class="calc-label">Players <span style="color:var(--muted);font-size:9px">(auto from session)</span></label>
         <input type="number" class="calc-input" id="calc-players" value="4" min="1">
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="calc-btn" style="flex:1" onclick="calculateExp()">Calculate EXP</button>
-        <button class="calc-btn" style="flex:0 0 auto;background:rgba(196,58,58,0.08);border-color:rgba(196,58,58,0.25);color:#c43a3a" onclick="clearCalculator()">Clear</button>
+      <div style="display:flex;gap:6px;width:100%">
+        <button class="calc-btn" style="flex:1;min-width:0" onclick="calculateExp()">Calculate</button>
+        <button class="calc-btn" style="flex:0 0 56px;background:rgba(196,58,58,0.08);border-color:rgba(196,58,58,0.25);color:#c43a3a" onclick="clearCalculator()">Clear</button>
       </div>
       <div class="calc-result" id="calc-result" style="display:none"></div>
       <button class="calc-btn" id="apply-exp-btn" style="display:none;margin-top:8px;background:rgba(122,184,122,0.1);border-color:rgba(122,184,122,0.3);color:#7ab87a" onclick="applyExpToSession()">✓ Apply to Session Characters</button>
