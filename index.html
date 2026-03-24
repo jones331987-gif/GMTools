@@ -752,6 +752,131 @@
   /* Separator ornament */
   .ornament { text-align: center; color: var(--border); margin: 8px 0; font-size: 10px; letter-spacing: 8px; }
 
+  /* ===== EXP TRACKER THREE-PANEL ===== */
+  .exp-three-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr 320px;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 1100px) { .exp-three-panel { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 700px)  { .exp-three-panel { grid-template-columns: 1fr; } }
+
+  .exp-panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Draggable character source cards */
+  .char-source-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 5px;
+    cursor: grab;
+    transition: border-color 0.15s, opacity 0.15s;
+    user-select: none;
+  }
+  .char-source-card:hover { border-color: var(--accent); }
+  .char-source-card.dragging { opacity: 0.35; cursor: grabbing; }
+  .char-source-card.in-session { opacity: 0.4; border-style: dashed; cursor: default; }
+  .char-source-card .csc-name {
+    font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); flex: 1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .char-source-card .csc-lvl {
+    font-family: 'Cinzel', serif; font-size: 10px; color: var(--accent);
+    background: rgba(196,147,58,0.1); border: 1px solid rgba(196,147,58,0.2);
+    border-radius: 2px; padding: 1px 6px; white-space: nowrap; flex-shrink: 0;
+  }
+  .char-source-card .csc-exp {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted);
+    flex-shrink: 0;
+  }
+  .char-source-card .csc-add {
+    background: rgba(196,147,58,0.1); border: 1px solid rgba(196,147,58,0.25);
+    border-radius: 2px; color: var(--accent); font-size: 14px;
+    width: 20px; height: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .char-source-card .csc-add:hover { background: rgba(196,147,58,0.25); }
+
+  /* Session drop zone */
+  .session-drop-zone {
+    min-height: 100px;
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .session-drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(196,147,58,0.05);
+  }
+
+  /* Session participant rows */
+  .session-char-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 5px;
+  }
+  .session-char-row .sc-name {
+    font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); flex: 1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .session-char-row .sc-lvl {
+    font-family: 'Cinzel', serif; font-size: 10px; color: var(--accent);
+    background: rgba(196,147,58,0.1); border: 1px solid rgba(196,147,58,0.2);
+    border-radius: 2px; padding: 1px 5px; flex-shrink: 0;
+  }
+  .session-char-row .sc-exp-bar {
+    width: 60px; height: 4px;
+    background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0;
+  }
+  .session-char-row .sc-exp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #f0c060);
+    border-radius: 2px;
+  }
+  .session-char-row .sc-exp-txt {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted);
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .session-char-row .sc-remove {
+    background: none; border: 1px solid rgba(196,58,58,0.2);
+    border-radius: 2px; width: 18px; height: 18px;
+    color: rgba(196,58,58,0.5); cursor: pointer; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .session-char-row .sc-remove:hover { border-color: #c43a3a; color: #c43a3a; }
+
+  /* char search */
+  .char-search {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-family: 'Crimson Text', serif;
+    font-size: 14px; color: var(--text);
+    outline: none; margin-bottom: 8px;
+  }
+  .char-search:focus { border-color: var(--accent); }
+  .char-search::placeholder { color: var(--muted); }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -849,9 +974,13 @@
 <!-- ===================== EXP TRACKER ===================== -->
 <div id="page-exptracker" class="page">
   <div class="section-title">Character EXP Tracker — Tier 1</div>
-  <div class="exp-layout">
+  <div class="exp-three-panel">
+
+    <!-- LEFT: All characters source list -->
     <div>
-      <div id="character-list"></div>
+      <div class="exp-panel-title">All Characters</div>
+      <input type="text" class="char-search" id="char-search" placeholder="Search characters…" oninput="renderCharacterSource()">
+      <div id="character-source-list"></div>
       <button class="add-char-btn" onclick="showAddChar()">+ Add Character</button>
       <div id="add-char-form" style="display:none">
         <div class="add-char-form">
@@ -862,6 +991,22 @@
         </div>
       </div>
     </div>
+
+    <!-- MIDDLE: Session participants drop zone -->
+    <div>
+      <div class="exp-panel-title">Session Participants
+        <button class="add-btn" style="float:right;background:rgba(196,58,58,0.1);border-color:rgba(196,58,58,0.3);color:#c43a3a;padding:3px 8px;font-size:9px" onclick="clearSession()">Clear</button>
+      </div>
+      <div id="session-drop-zone" class="session-drop-zone"
+        ondragover="onSessionDragOver(event)"
+        ondragleave="onSessionDragLeave(event)"
+        ondrop="onSessionDrop(event)">
+        <div id="session-char-list"></div>
+        <div id="session-drop-hint" class="drop-hint" style="padding:20px">Drag characters here for this session</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Calculator panel -->
     <div class="calc-panel">
       <div class="calc-title">⚡ Session EXP Calculator</div>
       <div class="calc-row">
@@ -881,13 +1026,14 @@
         <input type="number" class="calc-input" id="calc-quest" value="1" min="0">
       </div>
       <div class="calc-row">
-        <label class="calc-label">Participating players</label>
+        <label class="calc-label">Players <span style="color:var(--muted);font-size:9px">(auto from session)</span></label>
         <input type="number" class="calc-input" id="calc-players" value="4" min="1">
       </div>
       <button class="calc-btn" onclick="calculateExp()">Calculate EXP</button>
       <div class="calc-result" id="calc-result" style="display:none"></div>
-      <button class="calc-btn" id="apply-exp-btn" style="display:none;margin-top:8px;background:rgba(122,184,122,0.1);border-color:rgba(122,184,122,0.3);color:#7ab87a" onclick="applyExpToAll()">✓ Apply to All Characters</button>
+      <button class="calc-btn" id="apply-exp-btn" style="display:none;margin-top:8px;background:rgba(122,184,122,0.1);border-color:rgba(122,184,122,0.3);color:#7ab87a" onclick="applyExpToSession()">✓ Apply to Session Characters</button>
     </div>
+
   </div>
 </div>
 
@@ -1706,44 +1852,143 @@ function copyRoster() {
 }
 
 // ============================================================
-// EXP TRACKER
+// EXP TRACKER — DRAG & DROP SESSION
 // ============================================================
-function renderCharacters() {
-  const list = document.getElementById('character-list');
+let sessionChars = []; // indices into characters[]
+let draggedCharIdx = null;
+
+function renderCharacterSource() {
+  const query = (document.getElementById('char-search').value || '').toLowerCase();
+  const list  = document.getElementById('character-source-list');
   list.innerHTML = '';
+
   characters.forEach((c, i) => {
+    if (query && !c.name.toLowerCase().includes(query)) return;
+    const inSession = sessionChars.includes(i);
+    const pct = (c.exp / 10) * 100;
+    const isTrial = c.lvl === 3 || c.lvl === 6 || c.lvl === 9;
+    const isReady = c.exp >= 10;
+
+    const div = document.createElement('div');
+    div.className = 'char-source-card' + (inSession ? ' in-session' : '');
+    div.draggable = !inSession;
+    div.dataset.idx = i;
+
+    let badge = '';
+    if (isReady && !isTrial) badge = `<span class="milestone milestone-ready" style="font-size:8px;padding:1px 5px">↑Lv</span>`;
+    else if (isTrial)        badge = `<span class="milestone milestone-trial" style="font-size:8px;padding:1px 5px">Trial</span>`;
+
+    div.innerHTML = `
+      <span class="drag-handle" style="color:var(--muted);font-size:11px;flex-shrink:0">${inSession ? '✓' : '⠿'}</span>
+      <span class="csc-name">${c.name}</span>
+      ${badge}
+      <span class="csc-lvl">Lv ${c.lvl}</span>
+      <span class="csc-exp">${c.exp}/10</span>
+      <div class="exp-btns" style="gap:3px">
+        <button class="exp-btn" style="width:18px;height:18px;font-size:11px" onclick="adjustExp(${i},-1); event.stopPropagation()">−</button>
+        <button class="exp-btn" style="width:18px;height:18px;font-size:11px" onclick="adjustExp(${i},1); event.stopPropagation()">+</button>
+        ${isReady && !isTrial ? `<button class="exp-btn" style="width:auto;padding:0 5px;font-size:9px;color:var(--accent)" onclick="levelUp(${i}); event.stopPropagation()">↑Lv</button>` : ''}
+      </div>
+      ${!inSession ? `<button class="csc-add" onclick="addCharToSession(${i}); event.stopPropagation()">+</button>` : ''}
+    `;
+
+    if (!inSession) {
+      div.addEventListener('dragstart', e => {
+        draggedCharIdx = i;
+        div.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', String(i));
+      });
+      div.addEventListener('dragend', () => {
+        draggedCharIdx = null;
+        div.classList.remove('dragging');
+      });
+    }
+    list.appendChild(div);
+  });
+}
+
+function renderSessionList() {
+  const list = document.getElementById('session-char-list');
+  const hint = document.getElementById('session-drop-hint');
+
+  // Auto-update player count in calculator
+  document.getElementById('calc-players').value = sessionChars.length || 4;
+
+  if (!sessionChars.length) {
+    list.innerHTML = '';
+    if (hint) hint.style.display = 'block';
+    return;
+  }
+  if (hint) hint.style.display = 'none';
+
+  list.innerHTML = sessionChars.map(i => {
+    const c = characters[i];
     const pct = (c.exp / 10) * 100;
     const isTrial = c.lvl === 3 || c.lvl === 6 || c.lvl === 9;
     const isReady = c.exp >= 10;
     let badge = '';
-    if (isReady && !isTrial) badge = '<span class="milestone milestone-ready">▲ Level Up</span>';
-    else if (isTrial) badge = '<span class="milestone milestone-trial">⚠ Trial</span>';
-
-    list.innerHTML += `<div class="char-row">
-      <span class="char-name">${c.name}</span>
+    if (isReady && !isTrial) badge = `<span class="milestone milestone-ready" style="font-size:8px;padding:1px 5px">↑Lv</span>`;
+    else if (isTrial)        badge = `<span class="milestone milestone-trial" style="font-size:8px;padding:1px 5px">Trial</span>`;
+    return `<div class="session-char-row">
+      <span class="sc-name">${c.name}</span>
       ${badge}
-      <span class="char-lvl">Lv ${c.lvl}</span>
-      <div class="exp-bar-wrap"><div class="exp-bar-fill" style="width:${Math.min(100,pct)}%"></div></div>
-      <span class="exp-text">${c.exp}/10</span>
-      <div class="exp-btns">
-        <button class="exp-btn" title="−1 EXP" onclick="adjustExp(${i},-1)">−</button>
-        <button class="exp-btn" title="+1 EXP" onclick="adjustExp(${i},1)">+</button>
-        <button class="exp-btn" title="Level Up" onclick="levelUp(${i})" style="font-size:10px;width:auto;padding:0 6px;color:var(--accent)">↑Lv</button>
-      </div>
+      <span class="sc-lvl">Lv ${c.lvl}</span>
+      <div class="sc-exp-bar"><div class="sc-exp-fill" style="width:${Math.min(100,pct)}%"></div></div>
+      <span class="sc-exp-txt">${c.exp}/10</span>
+      <button class="sc-remove" onclick="removeCharFromSession(${i})">✕</button>
     </div>`;
-  });
+  }).join('');
+}
+
+function addCharToSession(idx) {
+  if (!sessionChars.includes(idx)) {
+    sessionChars.push(idx);
+    renderSessionList();
+    renderCharacterSource();
+  }
+}
+
+function removeCharFromSession(idx) {
+  sessionChars = sessionChars.filter(i => i !== idx);
+  renderSessionList();
+  renderCharacterSource();
+}
+
+function clearSession() {
+  sessionChars = [];
+  renderSessionList();
+  renderCharacterSource();
+}
+
+function onSessionDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  document.getElementById('session-drop-zone').classList.add('drag-over');
+}
+function onSessionDragLeave(e) {
+  document.getElementById('session-drop-zone').classList.remove('drag-over');
+}
+function onSessionDrop(e) {
+  e.preventDefault();
+  document.getElementById('session-drop-zone').classList.remove('drag-over');
+  const idx = parseInt(e.dataTransfer.getData('text/plain'));
+  const i = isNaN(idx) ? draggedCharIdx : idx;
+  if (i !== null && i !== undefined) addCharToSession(i);
 }
 
 function adjustExp(i, delta) {
   characters[i].exp = Math.max(0, Math.min(10, characters[i].exp + delta));
-  renderCharacters();
+  renderCharacterSource();
+  renderSessionList();
 }
 
 function levelUp(i) {
   if (characters[i].exp >= 10) {
     characters[i].exp = 0;
     characters[i].lvl++;
-    renderCharacters();
+    renderCharacterSource();
+    renderSessionList();
   }
 }
 
@@ -1759,15 +2004,16 @@ function addCharacter() {
   const lvl  = parseInt(document.getElementById('new-char-lvl').value) || 1;
   if (!name) return;
   characters.push({ name, exp: 0, lvl });
+  document.getElementById('new-char-name').value = '';
   hideAddChar();
-  renderCharacters();
+  renderCharacterSource();
 }
 
 function calculateExp() {
-  const mooks   = parseInt(document.getElementById('calc-mooks').value) || 0;
-  const elites  = parseInt(document.getElementById('calc-elites').value) || 0;
-  const bosses  = parseInt(document.getElementById('calc-bosses').value) || 0;
-  const quest   = parseInt(document.getElementById('calc-quest').value) || 0;
+  const mooks   = parseInt(document.getElementById('calc-mooks').value)   || 0;
+  const elites  = parseInt(document.getElementById('calc-elites').value)  || 0;
+  const bosses  = parseInt(document.getElementById('calc-bosses').value)  || 0;
+  const quest   = parseInt(document.getElementById('calc-quest').value)   || 0;
   const players = parseInt(document.getElementById('calc-players').value) || 4;
 
   const rawCombat = mooks*1 + elites*2 + bosses*4;
@@ -1775,26 +2021,41 @@ function calculateExp() {
   const perPlayer = Math.min(4, Math.floor((total * 2) / players));
   lastCalcExpPerPlayer = perPlayer;
 
+  const sessionLabel = sessionChars.length
+    ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)">Applying to ${sessionChars.length} session character${sessionChars.length !== 1 ? 's' : ''}</div>`
+    : `<div style="margin-top:6px;font-size:11px;color:#c43a3a">⚠ No session characters selected</div>`;
+
   const resultEl = document.getElementById('calc-result');
   resultEl.style.display = 'block';
   resultEl.innerHTML = `
-    <div><span class="result-key">Combat Exp Pool: </span><span class="result-val">${rawCombat}</span></div>
+    <div><span class="result-key">Combat Pool: </span><span class="result-val">${rawCombat}</span></div>
     <div><span class="result-key">Quest Bonus: </span><span class="result-val">+${quest}</span></div>
     <div><span class="result-key">Total Pool: </span><span class="result-val">${total}</span></div>
     <div><span class="result-key">Formula: </span><span class="result-val">(${total} × 2) ÷ ${players}</span></div>
-    <div><span class="result-key">Raw Per Player: </span><span class="result-val">${Math.floor((total * 2) / players)}</span></div>
-    <div><span class="result-key">After Cap (max 4): </span><span class="result-val" style="font-size:16px">${perPlayer} EXP</span></div>
+    <div><span class="result-key">After Cap: </span><span class="result-val" style="font-size:16px">${perPlayer} EXP</span></div>
+    ${sessionLabel}
   `;
-  document.getElementById('apply-exp-btn').style.display = 'block';
+  document.getElementById('apply-exp-btn').style.display = sessionChars.length ? 'block' : 'none';
 }
 
-function applyExpToAll() {
+function applyExpToSession() {
   if (!lastCalcExpPerPlayer) return;
-  characters.forEach(c => { c.exp = Math.min(10, c.exp + lastCalcExpPerPlayer); });
-  renderCharacters();
-  const btn = document.getElementById('apply-exp-btn');
-  btn.textContent = `✓ Applied ${lastCalcExpPerPlayer} EXP to all characters!`;
-  setTimeout(() => { btn.textContent = '✓ Apply to All Characters'; }, 3000);
+  const targets = sessionChars.length ? sessionChars : characters.map((_,i) => i);
+  targets.forEach(i => {
+    characters[i].exp = Math.min(10, characters[i].exp + lastCalcExpPerPlayer);
+  });
+
+  // Clear calculator inputs
+  document.getElementById('calc-mooks').value  = 0;
+  document.getElementById('calc-elites').value = 0;
+  document.getElementById('calc-bosses').value = 0;
+  document.getElementById('calc-quest').value  = 1;
+  document.getElementById('calc-result').style.display = 'none';
+  document.getElementById('apply-exp-btn').style.display = 'none';
+  lastCalcExpPerPlayer = 0;
+
+  renderCharacterSource();
+  renderSessionList();
 }
 
 // ============================================================
@@ -1802,7 +2063,8 @@ function applyExpToAll() {
 // ============================================================
 filterEnemies();
 filterEncSource();
-renderCharacters();
+renderCharacterSource();
+renderSessionList();
 updateSummary();
 </script>
 </body>
