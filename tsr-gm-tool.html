@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSR — GM Command Interface</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0a0f;
+    --surface:  #11111a;
+    --card:     #16161f;
+    --border:   #2a2a3f;
+    --accent:   #c4933a;
+    --accent2:  #7b3f8e;
+    --accent3:  #3a7bc4;
+    --text:     #d8d0c4;
+    --muted:    #7a7060;
+    --danger:   #a83232;
+    --green:    #3a8a50;
+    --red:      #c43a3a;
+    --gold:     #c4933a;
+    --silver:   #8a9aaa;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Text', serif;
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle noise texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; align-items: center; gap: 32px;
+    height: 56px;
+  }
+  .logo {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 20px rgba(196,147,58,0.3);
+    white-space: nowrap;
+  }
+  .logo span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+
+  nav { display: flex; gap: 4px; flex: 1; }
+  .nav-btn {
+    background: none; border: none; cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .nav-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .nav-btn.active { color: var(--accent); background: rgba(196,147,58,0.1); border: 1px solid rgba(196,147,58,0.25); }
+
+  /* ===== LAYOUT ===== */
+  .page { display: none; padding: 24px; min-height: calc(100vh - 56px); }
+  .page.active { display: block; }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+
+  /* ===== SEARCH & FILTERS ===== */
+  .controls-bar {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  .search-box {
+    flex: 1; min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'Crimson Text', serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--muted); }
+
+  .filter-group { display: flex; gap: 6px; }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .filter-btn:hover { color: var(--text); border-color: var(--accent); }
+  .filter-btn.active { color: var(--accent); background: rgba(196,147,58,0.1); border-color: rgba(196,147,58,0.4); }
+  .filter-btn.tier0.active { color: #8a9aaa; background: rgba(138,154,170,0.1); border-color: rgba(138,154,170,0.4); }
+  .filter-btn.tier1.active { color: #c4933a; background: rgba(196,147,58,0.1); border-color: rgba(196,147,58,0.4); }
+  .filter-btn.tier2.active { color: #c43a3a; background: rgba(196,58,58,0.1); border-color: rgba(196,58,58,0.4); }
+  .filter-btn.mook.active  { color: #7ab87a; background: rgba(122,184,122,0.1); border-color: rgba(122,184,122,0.4); }
+  .filter-btn.elite.active { color: #c4933a; background: rgba(196,147,58,0.1); border-color: rgba(196,147,58,0.4); }
+  .filter-btn.boss.active  { color: #c43a3a; background: rgba(196,58,58,0.1); border-color: rgba(196,58,58,0.4); }
+
+  /* ===== ENEMY GRID ===== */
+  .enemy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+
+  .enemy-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .enemy-card:hover { border-color: var(--accent); box-shadow: 0 0 12px rgba(196,147,58,0.1); }
+  .enemy-card.expanded { border-color: var(--accent); }
+
+  .enemy-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+  }
+  .enemy-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 9px; letter-spacing: 0.12em;
+    padding: 3px 7px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge-mook  { background: rgba(122,184,122,0.15); color: #7ab87a; border: 1px solid rgba(122,184,122,0.3); }
+  .badge-elite { background: rgba(196,147,58,0.15); color: var(--accent); border: 1px solid rgba(196,147,58,0.3); }
+  .badge-boss  { background: rgba(196,58,58,0.15); color: #c43a3a; border: 1px solid rgba(196,58,58,0.3); }
+  .badge-tier0 { background: rgba(138,154,170,0.1); color: #8a9aaa; }
+  .badge-tier1 { background: rgba(196,147,58,0.1); color: var(--accent); }
+  .badge-tier2 { background: rgba(196,58,58,0.1); color: #c43a3a; }
+
+  .enemy-name {
+    font-family: 'Cinzel', serif;
+    font-size: 14px; font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+  .enemy-hp-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .enemy-hp-badge span { color: #c43a3a; font-weight: bold; }
+
+  .enemy-quick-stats {
+    display: flex; gap: 8px;
+    padding: 0 16px 10px;
+    flex-wrap: wrap;
+  }
+  .stat-chip {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2px 6px;
+    color: var(--muted);
+  }
+  .stat-chip b { color: var(--text); }
+
+  .enemy-body {
+    display: none;
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .enemy-card.expanded .enemy-body { display: block; }
+
+  .enemy-desc {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 12px 0 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .ability-list { margin-bottom: 12px; }
+  .ability-item {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 5px;
+    padding-left: 10px;
+    position: relative;
+    color: var(--text);
+  }
+  .ability-item::before {
+    content: '◆';
+    position: absolute; left: 0;
+    color: var(--accent);
+    font-size: 8px;
+    top: 4px;
+  }
+  .ability-name { color: var(--accent); font-weight: 600; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .stat-block {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+  .stat-block .label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px; letter-spacing: 0.1em;
+    color: var(--muted); text-transform: uppercase;
+    display: block; margin-bottom: 2px;
+  }
+  .stat-block .val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .loot-tag {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .loot-tag span { color: #c4933a; }
+
+  /* ===== EXP TRACKER ===== */
+  .exp-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .exp-layout { grid-template-columns: 1fr; } }
+
+  .character-list { }
+  .char-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    transition: border-color 0.2s;
+  }
+  .char-row:hover { border-color: var(--accent); }
+  .char-name {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .char-lvl {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(196,147,58,0.1);
+    border: 1px solid rgba(196,147,58,0.2);
+    border-radius: 2px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+  .exp-bar-wrap {
+    width: 100px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    height: 5px;
+    overflow: hidden;
+  }
+  .exp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #f0c060);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+  .exp-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .exp-btns { display: flex; gap: 4px; }
+  .exp-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 2px; width: 22px; height: 22px;
+    color: var(--muted); cursor: pointer;
+    font-size: 14px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .exp-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* EXP Calculator Panel */
+  .calc-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    position: sticky; top: 76px;
+  }
+  .calc-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .calc-row { margin-bottom: 12px; }
+  .calc-label {
+    font-family: 'Cinzel', serif;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block; margin-bottom: 4px;
+  }
+  .calc-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 7px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+  }
+  .calc-input:focus { border-color: var(--accent); }
+  select.calc-input option { background: var(--surface); }
+
+  .calc-btn {
+    width: 100%;
+    background: rgba(196,147,58,0.1);
+    border: 1px solid rgba(196,147,58,0.3);
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .calc-btn:hover { background: rgba(196,147,58,0.2); border-color: var(--accent); }
+
+  .calc-result {
+    margin-top: 14px;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .calc-result .result-key { color: var(--muted); }
+  .calc-result .result-val { color: var(--accent); }
+
+  /* ===== LEVELING GUIDE ===== */
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .guide-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+  }
+  .guide-card h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .guide-card p { font-size: 14px; color: var(--text); line-height: 1.6; margin-bottom: 8px; }
+  .guide-card ul { padding-left: 16px; }
+  .guide-card li { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 4px; }
+  .guide-card li b { color: var(--accent); }
+
+  .exp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .exp-table th {
+    font-family: 'Cinzel', serif;
+    font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .exp-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .exp-table tr:last-child td { border-bottom: none; }
+  .exp-table .accent { color: var(--accent); }
+
+  /* Trial cards */
+  .trial-list { margin-top: 12px; }
+  .trial-item {
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .trial-item .trial-role {
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .trial-item p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ===== ENCOUNTER PANEL (mini quick-ref) ===== */
+  .quick-add-bar {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    align-items: center;
+  }
+  .quick-add-bar select {
+    flex: 1; min-width: 180px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-family: 'Crimson Text', serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+  }
+  .quick-add-bar select:focus { border-color: var(--accent); }
+  .add-btn {
+    background: rgba(196,147,58,0.1);
+    border: 1px solid rgba(196,147,58,0.3);
+    border-radius: 3px;
+    color: var(--accent);
+    font-family: 'Cinzel', serif;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .add-btn:hover { background: rgba(196,147,58,0.2); }
+
+  .roster-section {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .roster-section { grid-template-columns: 1fr; } }
+
+  .roster-list { }
+  .roster-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+  .roster-item .r-name { flex: 1; font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); }
+  .roster-item .r-badge { }
+  .roster-item .r-stats {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    white-space: nowrap;
+  }
+  .count-ctrl { display: flex; gap: 4px; align-items: center; }
+  .count-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px; color: var(--text);
+    width: 26px; text-align: center;
+  }
+  .remove-btn {
+    background: none; border: 1px solid rgba(196,58,58,0.2);
+    border-radius: 2px; width: 22px; height: 22px;
+    color: rgba(196,58,58,0.5); cursor: pointer;
+    font-size: 14px; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .remove-btn:hover { border-color: #c43a3a; color: #c43a3a; }
+
+  .summary-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    position: sticky; top: 76px;
+  }
+  .summary-panel h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .sum-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
+  }
+  .sum-row:last-child { border-bottom: none; }
+  .sum-row .sk { color: var(--muted); font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .sum-row .sv { font-family: 'Share Tech Mono', monospace; color: var(--text); font-size: 14px; }
+  .sum-row .sv.big { font-size: 16px; color: var(--accent); }
+
+  .exp-reward-section {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .exp-reward-row {
+    display: flex; justify-content: space-between;
+    font-size: 12px; padding: 3px 0;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .exp-reward-row span:first-child { color: var(--muted); }
+  .exp-reward-row span:last-child { color: var(--accent); }
+
+  .copy-btn {
+    width: 100%; margin-top: 12px;
+    background: rgba(122,184,122,0.1);
+    border: 1px solid rgba(122,184,122,0.3);
+    border-radius: 3px;
+    color: #7ab87a;
+    font-family: 'Cinzel', serif;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(122,184,122,0.2); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 48px 24px;
+    color: var(--muted);
+    font-style: italic; font-size: 15px;
+  }
+
+  /* Add char button */
+  .add-char-btn {
+    background: rgba(196,147,58,0.08);
+    border: 1px dashed rgba(196,147,58,0.25);
+    border-radius: 4px;
+    padding: 10px 14px;
+    color: var(--muted);
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%; text-align: center;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .add-char-btn:hover { color: var(--accent); border-color: rgba(196,147,58,0.5); }
+
+  .add-char-form {
+    display: flex; gap: 8px; margin-top: 8px;
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .add-char-form input {
+    flex: 1; background: none; border: none;
+    font-family: 'Crimson Text', serif; font-size: 14px;
+    color: var(--text); outline: none;
+  }
+  .add-char-form input::placeholder { color: var(--muted); }
+  .confirm-btn {
+    background: rgba(196,147,58,0.1);
+    border: 1px solid rgba(196,147,58,0.3);
+    border-radius: 3px;
+    color: var(--accent);
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  .cancel-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--muted); font-family: 'Cinzel', serif;
+    font-size: 10px; padding: 5px 10px; cursor: pointer;
+  }
+
+  /* Tier label groups */
+  .tier-header {
+    font-family: 'Cinzel', serif;
+    font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 16px 0 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tier-header::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--border);
+  }
+
+  /* milestone badge */
+  .milestone {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'Cinzel', serif;
+    font-size: 9px; letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+  .milestone-trial { background: rgba(123,63,142,0.2); color: #b07acc; border: 1px solid rgba(123,63,142,0.4); }
+  .milestone-ready { background: rgba(58,138,80,0.2); color: #7ab87a; border: 1px solid rgba(58,138,80,0.4); }
+
+  /* Separator ornament */
+  .ornament { text-align: center; color: var(--border); margin: 8px 0; font-size: 10px; letter-spacing: 8px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TSR <span>GM Interface</span></div>
+  <nav>
+    <button class="nav-btn active" onclick="showPage('encyclopedia')">⚔ Mooks Encyclopedia</button>
+    <button class="nav-btn" onclick="showPage('encounter')">☠ Encounter Builder</button>
+    <button class="nav-btn" onclick="showPage('exptracker')">★ EXP Tracker</button>
+    <button class="nav-btn" onclick="showPage('leveling')">▲ Leveling Guide</button>
+  </nav>
+</header>
+
+<!-- ===================== ENCYCLOPEDIA ===================== -->
+<div id="page-encyclopedia" class="page active">
+  <div class="section-title">Enemy Encyclopedia</div>
+  <div class="controls-bar">
+    <input type="text" class="search-box" id="enc-search" placeholder="Search enemies…" oninput="filterEnemies()">
+    <div class="filter-group" id="tier-filters">
+      <button class="filter-btn tier0 active" data-filter="tier" data-val="0" onclick="toggleFilter(this)">Tier 0</button>
+      <button class="filter-btn tier1 active" data-filter="tier" data-val="1" onclick="toggleFilter(this)">Tier 1</button>
+      <button class="filter-btn tier2 active" data-filter="tier" data-val="2" onclick="toggleFilter(this)">Tier 2</button>
+    </div>
+    <div class="filter-group" id="cat-filters">
+      <button class="filter-btn mook active" data-filter="cat" data-val="mook" onclick="toggleFilter(this)">Mooks</button>
+      <button class="filter-btn elite active" data-filter="cat" data-val="elite" onclick="toggleFilter(this)">Elites</button>
+      <button class="filter-btn boss active" data-filter="cat" data-val="boss" onclick="toggleFilter(this)">Bosses</button>
+    </div>
+  </div>
+  <div class="enemy-grid" id="enemy-grid"></div>
+</div>
+
+<!-- ===================== ENCOUNTER BUILDER ===================== -->
+<div id="page-encounter" class="page">
+  <div class="section-title">Encounter Builder</div>
+  <div class="quick-add-bar">
+    <select id="enc-picker">
+      <option value="">— Select an enemy to add —</option>
+    </select>
+    <button class="add-btn" onclick="addToRoster()">+ Add to Roster</button>
+    <button class="add-btn" style="background:rgba(196,58,58,0.1);border-color:rgba(196,58,58,0.3);color:#c43a3a" onclick="clearRoster()">Clear All</button>
+  </div>
+  <div class="roster-section">
+    <div>
+      <div id="roster-list"><div class="empty-state">No enemies in roster yet.<br>Select from the dropdown above.</div></div>
+    </div>
+    <div class="summary-panel">
+      <h3>⚡ Encounter Summary</h3>
+      <div class="sum-row"><span class="sk">Total Units</span><span class="sv big" id="sum-units">0</span></div>
+      <div class="sum-row"><span class="sk">Total HP</span><span class="sv" id="sum-hp">0</span></div>
+      <div class="sum-row"><span class="sk">Total Stamina</span><span class="sv" id="sum-stam">0</span></div>
+      <div class="sum-row"><span class="sk">Total Mana</span><span class="sv" id="sum-mana">0</span></div>
+      <div class="exp-reward-section">
+        <div class="section-title" style="margin-bottom:10px">EXP Reward</div>
+        <div class="exp-reward-row"><span>Raw Exp Pool</span><span id="raw-exp">0</span></div>
+        <div class="exp-reward-row"><span>After Formula (÷ players)</span><span id="calc-exp-display">—</span></div>
+        <div style="margin-top:8px">
+          <label class="calc-label">Players in encounter</label>
+          <input type="number" class="calc-input" id="player-count" value="4" min="1" max="12" onchange="updateSummary()">
+        </div>
+      </div>
+      <button class="copy-btn" onclick="copyRoster()">📋 Copy Roster to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== EXP TRACKER ===================== -->
+<div id="page-exptracker" class="page">
+  <div class="section-title">Character EXP Tracker — Tier 1</div>
+  <div class="exp-layout">
+    <div>
+      <div id="character-list"></div>
+      <button class="add-char-btn" onclick="showAddChar()">+ Add Character</button>
+      <div id="add-char-form" style="display:none">
+        <div class="add-char-form">
+          <input type="text" id="new-char-name" placeholder="Character name…">
+          <input type="number" id="new-char-lvl" value="1" min="1" max="10" style="width:60px">
+          <button class="confirm-btn" onclick="addCharacter()">Add</button>
+          <button class="cancel-btn" onclick="hideAddChar()">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="calc-panel">
+      <div class="calc-title">⚡ Session EXP Calculator</div>
+      <div class="calc-row">
+        <label class="calc-label">Mooks defeated</label>
+        <input type="number" class="calc-input" id="calc-mooks" value="0" min="0">
+      </div>
+      <div class="calc-row">
+        <label class="calc-label">Elites defeated</label>
+        <input type="number" class="calc-input" id="calc-elites" value="0" min="0">
+      </div>
+      <div class="calc-row">
+        <label class="calc-label">Bosses defeated</label>
+        <input type="number" class="calc-input" id="calc-bosses" value="0" min="0">
+      </div>
+      <div class="calc-row">
+        <label class="calc-label">Quest EXP bonus</label>
+        <input type="number" class="calc-input" id="calc-quest" value="1" min="0">
+      </div>
+      <div class="calc-row">
+        <label class="calc-label">Participating players</label>
+        <input type="number" class="calc-input" id="calc-players" value="4" min="1">
+      </div>
+      <button class="calc-btn" onclick="calculateExp()">Calculate EXP</button>
+      <div class="calc-result" id="calc-result" style="display:none"></div>
+      <button class="calc-btn" id="apply-exp-btn" style="display:none;margin-top:8px;background:rgba(122,184,122,0.1);border-color:rgba(122,184,122,0.3);color:#7ab87a" onclick="applyExpToAll()">✓ Apply to All Characters</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LEVELING GUIDE ===================== -->
+<div id="page-leveling" class="page">
+  <div class="section-title">Leveling Guide — TSR 5.0</div>
+  <div class="guide-grid">
+
+    <div class="guide-card">
+      <h3>📖 How EXP Works</h3>
+      <p>Characters earn experience through combat encounters. Exp is shared equally among all participating players.</p>
+      <p>Formula: <b style="color:var(--accent)">(Tallied Exp × 2) ÷ Players</b>, capped at <b style="color:var(--accent)">4 exp per player</b>.</p>
+      <p>Each level requires <b style="color:var(--accent)">10 EXP</b>. Overflow is wasted.</p>
+    </div>
+
+    <div class="guide-card">
+      <h3>🏆 Enemy EXP Values</h3>
+      <table class="exp-table">
+        <tr><th>Category</th><th>Base EXP</th><th>Note</th></tr>
+        <tr><td>Mook</td><td class="accent">1 EXP</td><td>Standard</td></tr>
+        <tr><td>Elite</td><td class="accent">2 EXP</td><td>Standard</td></tr>
+        <tr><td>Boss</td><td class="accent">4 EXP</td><td>Standard</td></tr>
+        <tr><td>1 Tier below</td><td class="accent">½ EXP</td><td>Halved</td></tr>
+        <tr><td>Quest baseline</td><td class="accent">+1 EXP</td><td>Per player</td></tr>
+      </table>
+    </div>
+
+    <div class="guide-card">
+      <h3>📊 Level Tiers</h3>
+      <table class="exp-table">
+        <tr><th>Tier</th><th>Levels</th></tr>
+        <tr><td>Tier 0</td><td class="accent">Weak Enemies</td></tr>
+        <tr><td>Tier 1</td><td class="accent">Lv 1–3</td></tr>
+        <tr><td>Tier 2</td><td class="accent">Lv 4–6</td></tr>
+        <tr><td>Tier 3</td><td class="accent">Lv 7–9</td></tr>
+        <tr><td>Tier 4</td><td class="accent">Lv 10</td></tr>
+        <tr><td>Tier 5</td><td class="accent">Extreme / Awakened</td></tr>
+      </table>
+    </div>
+
+    <div class="guide-card">
+      <h3>⚠ Leveling Milestones & Trials</h3>
+      <p>Upon reaching <b style="color:var(--accent)">levels 3, 6, and 9</b>, characters must complete a <b style="color:var(--accent)">Trial</b> before they can earn further EXP. EXP gains halt until the trial is completed.</p>
+      <div class="trial-list">
+        <div class="trial-item"><div class="trial-role">Warrior Trial</div><p>Protect NPC allies escorting them to safety under attack. Fail if any ally is downed.</p></div>
+        <div class="trial-item"><div class="trial-role">Support Trial</div><p>Maintain a group of allies fighting hostile forces. Fail if any ally is downed.</p></div>
+        <div class="trial-item"><div class="trial-role">Assassin Trial</div><p>Down high-priority targets before they down your party.</p></div>
+        <div class="trial-item"><div class="trial-role">Destroyer Trial</div><p>Eliminate a swarm of enemies within a turn limit. Fail if downed or time runs out.</p></div>
+        <div class="trial-item"><div class="trial-role">Disabler Trial</div><p>Break a boss's poise bar while protecting allies from high-damage threats.</p></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <h3>📝 Logging EXP</h3>
+      <ul>
+        <li>Players log earned exp in the designated <b>Discord channel</b>.</li>
+        <li>A GM reacts with a <b>✅ check emoji</b> once logged in the document.</li>
+        <li>The <b>GM</b> transfers exp to the public tracker doc.</li>
+        <li>Players do <b>not</b> self-manage their exp totals.</li>
+        <li>PvP exp is valid but <b>farming is not tolerated</b>.</li>
+      </ul>
+    </div>
+
+    <div class="guide-card">
+      <h3>💡 Quick Example</h3>
+      <p>Party of 4 defeats: 3 Mooks (3 exp) + 1 Elite (2 exp) + 1 Boss (4 exp) = 9 raw exp.</p>
+      <p>Quest bonus: +1 = 10 total.</p>
+      <p>Formula: (10 × 2) ÷ 4 = <b style="color:var(--accent)">5 exp</b>, but capped at <b style="color:var(--accent)">4 exp per player</b>.</p>
+      <p>Each player gets <b style="color:var(--accent)">4 EXP</b>.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const ENEMIES = [
+  // ---- TIER 0 MOOKS ----
+  {
+    name: 'Peasant', tier: 0, cat: 'mook',
+    hp: 20, stam: 15, mana: 0,
+    str: 'd8', dex: 'd8', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 6, armor: 0, ward: 0,
+    dmg: '1d8+1d6 (+2 Power Attack)', acc: '1d8 (+2 Take Aim)', move: 6,
+    desc: 'The unwashed masses, quick to pick up torches and pitchforks, but quick to scare when the numbers are not on their side.',
+    abilities: [
+      { name: 'Easily Influenced', desc: 'Riled up by Agitators. +2 Accuracy, Damage and Parry per Agitator (max +6).' },
+      { name: 'Untrained Attacks', desc: 'Always uses Power Attack and Take Aim for +2 Primary Damage and +2 Accuracy for 8 stamina.' }
+    ],
+    equipment: 'Pitchfork (1d6), Rusty Machete (1d4), Mallet (1d6 Cleave), Torch (1d4 +1d4 fire, Searing), Rock (improvised throw)',
+    loot: 'Equipped weapon'
+  },
+  {
+    name: 'Trainee', tier: 0, cat: 'mook',
+    hp: 25, stam: 25, mana: 0,
+    str: 'd8', dex: 'd8', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 6, armor: 0, ward: 0,
+    dmg: '1d8+1d4/1d6 (+2 Power Attack)', acc: '1d8 (+2 Take Aim)', move: 6,
+    desc: 'Martial arts initiates easily influenced by their seniors. Usually cower after a small display of bravado.',
+    abilities: [
+      { name: 'Flickering Flame', desc: 'Always uses Power Attack and Take Aim for +2 Primary Damage and +2 Accuracy for 8 stamina.' }
+    ],
+    equipment: 'Training Caestus (1d4), Training Spear (1d6), or Training Bow (1d6 Shortbow, range 10)',
+    loot: 'Equipped weapon'
+  },
+  {
+    name: 'Thug', tier: 0, cat: 'mook',
+    hp: 25, stam: 25, mana: 0,
+    str: 'd12', dex: 'd4', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 4, armor: 0, ward: 0,
+    dmg: '1d12+1d4/1d6 (+2 Primary Dmg, +1 Precise Strikes)', acc: '1d12 (+1 Precise Strikes)', move: 6,
+    desc: 'Lowlife thugs using intimidation and violence to bully weaker targets.',
+    abilities: [
+      { name: 'Brute', desc: 'Uses Strength to determine Accuracy with melee weapons.' },
+      { name: 'Vicious Strike', desc: '2 Actions, attack with Strength Dice twice.' },
+      { name: 'Cleave', desc: '2 Actions, AoE around weapon radius.' },
+      { name: 'Bodyguard', desc: '2 Stamina to Guard an ally within 5ft.' }
+    ],
+    equipment: 'Brass Knuckles (1d4), Nasty Club (1d6 Heavy Club)',
+    loot: 'Equipped weapon'
+  },
+  {
+    name: 'Mugger', tier: 0, cat: 'mook',
+    hp: 20, stam: 30, mana: 0,
+    str: 'd6', dex: 'd10', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 7, armor: 0, ward: 0,
+    dmg: '1d6+1d4+2', acc: '1d10 (+2 Take Aim)', move: 6,
+    desc: 'Shady individuals with shivs who swarm targets trying to take them down with numbers.',
+    abilities: [
+      { name: 'Reckless Tossout', desc: '4 Stamina, 2 Actions. Deal Str Die damage without hitting Parry at half throw range.' },
+      { name: 'Lethality', desc: 'Applies 2 stacks of Bleeding on every successful damaging hit. Aggravate on crit.' }
+    ],
+    equipment: 'Shiv (1d4 Knife, range 6, Reckless Tossout)',
+    loot: 'Equipped weapon'
+  },
+  {
+    name: 'Apprentice', tier: 0, cat: 'mook',
+    hp: 20, stam: 10, mana: 20,
+    str: 'd4', dex: 'd4', min: 'd10', wil: 'd8', vig: 'd4',
+    parry: 4, armor: 0, ward: 2,
+    dmg: '1d10+1d4 (Fire Spark)', acc: '1d10', move: 6,
+    desc: 'Magic initiates who have just begun their studies. Stays away from melee as much as possible.',
+    abilities: [
+      { name: 'Fire Spark', desc: '1d4 fire + Mind, 10ft radius cloak. HP damage applies 1 Searing.' },
+      { name: 'Thaumic Fortification', desc: 'Conjures 10 damage shields for an ally within spell range.' },
+      { name: 'Dark Erosion', desc: 'Wil vs Wil save. On fail: Rend + 2 Poison.' },
+      { name: 'Ghastly Trickery', desc: 'Wil vs Wil save. On fail: Root.' }
+    ],
+    equipment: 'Wand (casting focus, Spell Range 8)',
+    loot: '1 Wand'
+  },
+  // ---- TIER 0 ELITES ----
+  {
+    name: 'Bandit Enforcer', tier: 0, cat: 'elite',
+    hp: 30, stam: 30, mana: 0,
+    str: 'd10', dex: 'd12', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 8, armor: 4, ward: 0,
+    dmg: '1d10+1d8 (+2 Prec. Strikes, +1d10 Vicious)', acc: '1d12 (+2 Prec., +2 Take Aim)', move: 6,
+    desc: 'Enforcer of disorganized bandits — a bit more skilled, or simply stronger. Rules by force and intimidation.',
+    abilities: [
+      { name: 'Crude Swordsmanship', desc: 'Cleave (AoE crowds) or Vicious Strike (single targets). Both 2 Actions.' },
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: 'Precision Strikes', desc: '4 Stamina. +2 Damage and Accuracy to attack phase.' }
+    ],
+    equipment: 'Broadsword (1d8 Versatile), Gambeson (+4 Armor)',
+    loot: 'Equipped weapons, Hauberk Armor'
+  },
+  {
+    name: 'Deserter', tier: 0, cat: 'elite',
+    hp: 25, stam: 35, mana: 0,
+    str: 'd6', dex: 'd12+2', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 10, armor: 1, ward: 0,
+    dmg: '2d4 (+2 Prec. Strikes, +2 Hunter\'s Disc)', acc: '1d12+2 (+2 each enhancer)', move: 6,
+    desc: 'A deserter making ends meet. Hides in backlines, using allies for cover to line up the perfect shot.',
+    abilities: [
+      { name: 'Precision Strikes', desc: '4 Stamina. +2 Damage and Accuracy.' },
+      { name: "Hunter's Discharge", desc: '4 Stamina. +2 Damage and Accuracy.' }
+    ],
+    equipment: 'Autogun (2d4, range 8, 12 ammo), Shortsword (1d6), 2x Shrapnel Grenade (4d6, 10ft AoE, Bleed 4)',
+    loot: 'Equipped weapons, Gambeson Armor'
+  },
+  {
+    name: 'Hunter', tier: 0, cat: 'elite',
+    hp: 25, stam: 35, mana: 0,
+    str: 'd6', dex: 'd12+2', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 8, armor: 0, ward: 0,
+    dmg: '2d6 (+2 Precision Strikes)', acc: '1d12+2 (+2 each enhancer)', move: 6,
+    desc: 'Woodsman fallen on hard times, using bowmanship and tracking skills to eke out a life on the fringe.',
+    abilities: [
+      { name: "Hunter's Mark", desc: '1 Action: +2 Accuracy on next ranged attack against target.' },
+      { name: 'Precision Strikes + Take Aim', desc: '+4 Accuracy, +2 Damage for 8 stamina.' },
+      { name: 'Lethality', desc: '2 stacks of Bleeding on hit. Aggravate on crit.' },
+      { name: 'Quickdraw', desc: 'Draw Actions as Free Actions for 4 stamina.' }
+    ],
+    equipment: 'Shortsword (1d4 Dagger), Light Crossbow (2d6, range 10)',
+    loot: 'Equipped gear'
+  },
+  {
+    name: 'Shaman', tier: 0, cat: 'elite',
+    hp: 25, stam: 10, mana: 25,
+    str: 'd4', dex: 'd4', min: 'd12', wil: 'd10', vig: 'd4',
+    parry: 6, armor: 0, ward: 3,
+    dmg: '1d12+1d4 (Fire Flicker)', acc: '1d12', move: 6,
+    desc: 'Rogue magic user found dealing with shady groups to obtain resources for magical experiments.',
+    abilities: [
+      { name: 'Mana Abjuration', desc: 'Half Mind = Parry. Can use Mana to Dodge/Block.' },
+      { name: 'Fire Flicker', desc: '1d6 fire + Mind, 10ft radius. HP dmg = 1 Searing.' },
+      { name: 'Summon Fragment Phantom', desc: '10 HP phantom. Deals 1d6+5 physical. On HP hit: 1 Bleed (2 if already Bleeding → Poison).' },
+      { name: 'Thaumic Fortification', desc: '10 damage shields for ally within range.' },
+      { name: 'Shadowy Erosion', desc: 'Wil vs Wil. On fail: Rend + 4 Poison.' },
+      { name: 'Ghastly Trickery', desc: 'Wil vs Wil. On fail: Root.' }
+    ],
+    equipment: 'Staff (Parry +1, Spell Range 9)',
+    loot: '1 Staff'
+  },
+  // ---- TIER 0 BOSS ----
+  {
+    name: 'Bandit Boss', tier: 0, cat: 'boss',
+    hp: 50, stam: 40, mana: 0,
+    str: 'd12', dex: 'd12', min: 'd4', wil: 'd4', vig: 'd8',
+    parry: 8, armor: 8, ward: 0,
+    dmg: '1d12+1d8 (+2 Prec., +1d12 Vicious, +1 Axe)', acc: '1d12+1 (+2 Prec., +2 Take Aim)', move: 6,
+    desc: 'Boss of a gaggle of disorganized bandits. Rules by force and intimidation.',
+    abilities: [
+      { name: 'Drunken Bravado', desc: 'Begins battle with 1 Poise. Cannot regain until Short Rest.' },
+      { name: 'Crude Fighting', desc: 'Cleave (AoE) or Vicious Strike (single target). 2 Actions each.' },
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: 'Precision Strikes', desc: '4 Stamina. +2 Damage and Accuracy.' },
+      { name: 'Improved Take Aim', desc: '4 Stamina. +3 Accuracy to attack phase.' }
+    ],
+    equipment: 'Highland Axe (1d8 Reach+1), Scale Armor (+8 Armor)',
+    loot: 'Equipped weapons, Scale Armor'
+  },
+  // ---- TIER 1 MOOKS ----
+  {
+    name: 'Soldier', tier: 1, cat: 'mook',
+    hp: 35, stam: 25, mana: 0,
+    str: 'd8', dex: 'd8', min: 'd4', wil: 'd4', vig: 'd8',
+    parry: 7, armor: 6, ward: 0,
+    dmg: '1d8+1d6 (+2 Power Attack)', acc: '1d8 (+2 Take Aim)', move: 6,
+    desc: 'Basic troops forming the backbone of any army or garrison. Modest training, fight best as a unit.',
+    abilities: [
+      { name: 'Moderately Armored', desc: 'Starts combat with 10 damage shields (max 15).' },
+      { name: 'Bodyguard', desc: 'Free action, 2 stamina. Guards ally within 5ft.' },
+      { name: 'Phalanx', desc: '2 Stamina free action. Creates 3 tiles of Partial Cover redirecting projectiles to the Soldier.' },
+      { name: 'Barbed Counter', desc: '5ft physical cloak when shields are destroyed or on Counter AoO (Str d8).' },
+      { name: 'Drilled Technique', desc: 'Counters with Take Aim + Power Attack (+2 Acc, +2 Dmg, 8 stamina).' }
+    ],
+    equipment: 'Sword and Shield (1d6 Shortsword / Buckler, +1 Parry), Hauberk',
+    loot: 'Equipped weapons, Hauberk Armor'
+  },
+  {
+    name: 'Mercenary', tier: 1, cat: 'mook',
+    hp: 25, stam: 25, mana: 0,
+    str: 'd8', dex: 'd12', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 8, armor: 0, ward: 0,
+    dmg: '1d8+1d8/1d4 (+2 Prec., +1d8 Determined Strike)', acc: '1d12 (+2 Prec., +2 Take Aim)', move: 6,
+    desc: 'Bold swordsman with a few contracts under their belt. Bravado usually betrays their inexperience.',
+    abilities: [
+      { name: 'Cleave', desc: '2 Actions. Strike in targeted AoE.' },
+      { name: 'Determined Strike', desc: '1 Action: add extra Primary Weapon damage die to next melee attack.' },
+      { name: 'Precise Blow', desc: 'Precision Strikes + Take Aim: +4 Accuracy, +2 Primary Damage for 8 stamina.' }
+    ],
+    equipment: 'Trusty Blade (1d8 Broadsword), Throwing Knives (1d4, range 6, Reckless Tossout)',
+    loot: 'Equipped weapons'
+  },
+  {
+    name: 'Militia', tier: 1, cat: 'mook',
+    hp: 25, stam: 25, mana: 0,
+    str: 'd8', dex: 'd12', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 8, armor: 0, ward: 0,
+    dmg: '2d10 (+2 Hunter\'s Discharge)', acc: '1d12 (+2 Take Aim, +2 Hunter\'s Disc.)', move: 6,
+    desc: 'Standard ranged trooper. Fire support from afar but not impressive in close quarters.',
+    abilities: [
+      { name: 'Firing Volley', desc: "Hunter's Discharge + Take Aim: +4 Accuracy, +2 Primary Damage for 8 stamina." },
+      { name: 'Overwatch', desc: '1 Action: stay attentive, able to perform Ranged Attacks of Opportunity.' }
+    ],
+    equipment: 'Musket (2d10, range 10), Bayonet (1d6 Spear +1 Reach)',
+    loot: 'Equipped weapons'
+  },
+  {
+    name: 'Brawler', tier: 1, cat: 'mook',
+    hp: 25, stam: 25, mana: 0,
+    str: 'd8', dex: 'd12', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 8, armor: 0, ward: 0,
+    dmg: 'Fists 1d8+1d6 (+2 Prec. Strikes)', acc: '1d12 (+2 Prec., +2 Quick Jabs)', move: 6,
+    desc: 'Quick and mobile fighters who strike with fists and feet. Prioritize speed and dexterity.',
+    abilities: [
+      { name: 'Fist Fighter', desc: 'Fists become Finesse weapons. 2 Actions to attack twice. Fists deal 1d6.' },
+      { name: 'Grab Action', desc: 'Single attack targeting Parry for grapple (Str vs Vig). No damage required.' },
+      { name: 'Quick Blows', desc: 'Quick Jabs + Precision Strikes: +4 Accuracy, +2 Primary Damage for 8 stamina.' }
+    ],
+    equipment: 'Bare fists, Throwing Knives (1d4, range 6)',
+    loot: 'Equipped weapons'
+  },
+  {
+    name: 'Lancer', tier: 1, cat: 'mook',
+    hp: 30, stam: 25, mana: 0,
+    str: 'd8', dex: 'd10', min: 'd4', wil: 'd4', vig: 'd6',
+    parry: 7, armor: 4, ward: 0,
+    dmg: '1d8+1d6 (+2 Prec., +1 Interruptor)', acc: '1d10 (+2 Prec., +2 Take Aim, +1 Interruptor)', move: 6,
+    desc: 'Specialist in area denial. Takes strategic positions and uses their spear to punish anyone who approaches.',
+    abilities: [
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: 'Cleave', desc: '2 Actions. Targeted AoE.' },
+      { name: 'Vicious Strike', desc: '2 Actions. +Str die extra damage.' },
+      { name: 'Interruptor', desc: '+1 Accuracy and Damage on Attacks of Opportunity.' },
+      { name: 'Precise Blow', desc: 'Precision Strikes + Take Aim: +4 Acc, +2 Dmg for 8 stamina.' }
+    ],
+    equipment: 'Spear (1d6+Str), Hauberk (+4 Armor)',
+    loot: 'Equipped weapons'
+  },
+  {
+    name: 'Shotgunner', tier: 1, cat: 'mook',
+    hp: 25, stam: 25, mana: 0,
+    str: 'd10', dex: 'd10', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 7, armor: 0, ward: 0,
+    dmg: '1d10+1d4 (+2 Precision Strikes)', acc: '1d10 (+2 Prec., +2 Take Aim)', move: 6,
+    desc: 'Trench fighter specializing in close range combat. Ambushes militia in tight quarters.',
+    abilities: [
+      { name: 'Shotgun Blast', desc: 'Precision Strikes + Power Attack: +4 Primary Damage (halved to +2).' },
+      { name: 'Bayonet Thrust', desc: 'Vicious Strike with Precision + Take Aim: +4 Acc, +2 Dmg for 8 stamina.' },
+      { name: 'Lethality', desc: '2 stacks of Bleeding on hit. Aggravate on crit.' }
+    ],
+    equipment: 'Boomstick (2d6, range 6), Bayonet (spear)',
+    loot: 'Equipped weapons'
+  },
+  {
+    name: 'Scout', tier: 1, cat: 'mook',
+    hp: 25, stam: 25, mana: 0,
+    str: 'd4', dex: 'd12', min: 'd4', wil: 'd8', vig: 'd4',
+    parry: 8, armor: 0, ward: 2,
+    dmg: '2d6+2 (+2 Precision Strikes)', acc: '1d12 (+2 Prec., +2 Take Aim, +2 Mark)', move: 6,
+    desc: 'Gunslingers trained to counter enemy spellcasters. Lurks for opportunities to charge in close.',
+    abilities: [
+      { name: 'Cheap Shot', desc: "Hunter's Mark + Precision Strike + Take Aim: +6 Acc, +2 Dmg for 8 stamina." },
+      { name: 'Nightstick', desc: 'Melee: Precision Strikes + Take Aim, +4 Acc, +2 Dmg for 8 stamina.' },
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: "Hunter's Mark", desc: '1 Action: +2 Accuracy on next ranged attack.' }
+    ],
+    equipment: 'Pistol (2d6, range 8), Club (Str+d4)',
+    loot: 'Equipped weapons'
+  },
+  {
+    name: 'Mage', tier: 1, cat: 'mook',
+    hp: 20, stam: 10, mana: 30,
+    str: 'd4', dex: 'd4', min: 'd12', wil: 'd8', vig: 'd4',
+    parry: 6, armor: 0, ward: 2,
+    dmg: '1d12+1d4/1d4 (spells)', acc: '1d12', move: 6,
+    desc: 'Senior apprentice with more experience. Versatile caster that adapts spells to the situation.',
+    abilities: [
+      { name: 'Mana Abjuration', desc: 'Half Mind = Parry. Can use Mana to Dodge/Block.' },
+      { name: 'Fire Spark', desc: '1d4 fire + Mind, 10ft cloak. HP dmg = 1 Searing. 4 mana, 2 Actions.' },
+      { name: 'Summon Fragment Phantom', desc: '10 HP, 1d6+5 physical. On HP hit: 1 Bleed (+ Poison if already Bleeding). 4 mana.' },
+      { name: 'Thaumic Fortification', desc: '10 damage shields for ally. 4 mana.' },
+      { name: 'Dark Erosion', desc: 'Wil vs Wil → Rend + 2 Poison. 4 mana.' },
+      { name: 'Ghastly Trickery', desc: 'Wil vs Wil → Root. 4 mana.' }
+    ],
+    equipment: 'Staff (Parry+1, Spell Range 8)',
+    loot: '1 Staff'
+  },
+  {
+    name: 'Priestess', tier: 1, cat: 'mook',
+    hp: 20, stam: 10, mana: 30,
+    str: 'd4', dex: 'd4', min: 'd8', wil: 'd12', vig: 'd4',
+    parry: 4, armor: 0, ward: 4,
+    dmg: '1d8+1d4 (spells)', acc: '1d8 (+2 Homing)', move: 6,
+    desc: 'Traveling maiden wielding the light of a higher power. Versatile healer/support caster.',
+    abilities: [
+      { name: 'Mana Abjuration', desc: 'Half Mind = Parry. Can use Mana to Dodge/Block.' },
+      { name: 'Angelic Wingbeat', desc: '1d4 holy + Mind, 10ft cloak. HP damage converts to healing for allies. 4 mana.' },
+      { name: 'Divine Fortification', desc: '10 damage shields OR Willpower die of healing for ally. 4 mana.' },
+      { name: 'Aura', desc: '2d6 + Mind Holy damage, 2 Searing on HP hit. +2 Acc Homing spell. 4 mana.' }
+    ],
+    equipment: 'Staff (Parry+1, Spell Range 8)',
+    loot: '1 Staff'
+  },
+  // ---- TIER 1 ELITES ----
+  {
+    name: 'Barbarian', tier: 1, cat: 'elite',
+    hp: 45, stam: 35, mana: 0,
+    str: 'd12+2', dex: 'd4', min: 'd4', wil: 'd4', vig: 'd8',
+    parry: 4, armor: 2, ward: 0,
+    dmg: '1d12+2+1d10 (+3 Power Atk, +2 Prec. / 1d12+2 Vicious)', acc: '1d12+2 (+2 Prec.)', move: 6,
+    desc: 'Raging brute swinging gigantic weaponry to crush armor. Throws itself into melee looking for spectacular kills.',
+    abilities: [
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: 'Brute', desc: 'Uses Strength for Accuracy on melee attacks.' },
+      { name: "Titan's Grip", desc: 'Can use 2h weapons in 1h.' },
+      { name: 'Cleave', desc: '2 Actions. Targeted AoE.' },
+      { name: 'Vicious Strike', desc: '2 Actions. Add Str die twice.' },
+      { name: 'Armor Crusher', desc: '12 Stamina: +5 Primary Damage, +2 Accuracy (Precision Strikes + Improved Power Attack).' },
+      { name: 'Rage', desc: 'All hits become Glancing Blows (+2 stam cost to everything). +1 damage per 10 missing HP (max +3). 4 stam upkeep.' }
+    ],
+    equipment: 'Maul (1d10), Caestus (1d4)',
+    loot: 'Equipped weapons'
+  },
+  {
+    name: 'Hoplite', tier: 1, cat: 'elite',
+    hp: 45, stam: 35, mana: 0,
+    str: 'd10', dex: 'd12', min: 'd4', wil: 'd4', vig: 'd8',
+    parry: 10, armor: 8, ward: 0,
+    dmg: '1d10+1d4 (+2 Precision Strikes)', acc: '1d12 (+2 Prec., +2 Take Aim)', move: 6,
+    desc: 'Effective armored unit upholding an ancient tradition of fighting. Guards position like no other.',
+    abilities: [
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: 'Armored', desc: 'Starts with 15 damage shields (max 15). Resistances apply over shields.' },
+      { name: 'Anchoring Howl', desc: '10ft cloak. Free Action, 2 stam to activate, 1 stam/round. Instantly Guard all allies within.' },
+      { name: 'Barbed Counter', desc: '5ft Str d10 cloak when shields destroyed or Counter Attack. Recover 10 damage shields on use.' },
+      { name: 'Spiked Armor', desc: '5ft Str physical cloak when enemy finishes movement or attack phase against unit.' },
+      { name: 'Drilled Technique', desc: 'Counter with Precision + Take Aim (+4 Acc, +2 Dmg for 8 stamina). Recover 10 shields.' }
+    ],
+    equipment: 'Harpoon (1d4) + Heater Shield (+2 Parry), Scale Armor',
+    loot: 'Equipped weapons, Scale Armor'
+  },
+  {
+    name: 'Stalker', tier: 1, cat: 'elite',
+    hp: 30, stam: 40, mana: 0,
+    str: 'd8', dex: 'd12+2', min: 'd4', wil: 'd4', vig: 'd4',
+    parry: 9, armor: 1, ward: 0,
+    dmg: '1d8+1d4 / 1d8+1d6 (+2 Prec. Strikes)', acc: '1d12+2 (+2 Prec., +2 Take Aim)', move: 6,
+    desc: 'Professional spy executing special missions. Flexible at any distance — melee daggers or shortbow.',
+    abilities: [
+      { name: 'Dual Strike / Double Shot', desc: '2 Actions. 2 attacks with same MAP.' },
+      { name: "Hunter's Mark", desc: '1 Action: +2 Accuracy on next ranged attack.' },
+      { name: 'Volley of Arrows', desc: '2 Actions. Targeted AoE 15ft radius.' },
+      { name: 'Precision Strikes + Take Aim', desc: '+4 Accuracy, +2 Damage for 8 stamina.' },
+      { name: 'Lethality', desc: '2 stacks of Bleeding on hit. Aggravate on crit.' },
+      { name: 'Quickdraw', desc: 'Draw Actions as Free Actions for 4 stamina.' }
+    ],
+    equipment: 'Daggers ×2 (1d4), Shortbow (d8+d6, range 10), Gambeson',
+    loot: 'Equipped gear'
+  },
+  {
+    name: 'Spellblade', tier: 1, cat: 'elite',
+    hp: 30, stam: 10, mana: 30,
+    str: 'd6', dex: 'd4', min: 'd12+2', wil: 'd8', vig: 'd4',
+    parry: 9, armor: 1, ward: 0,
+    dmg: '1d12+2+1d6/1d8 (+2 Power Atk)', acc: '1d12+2 (+2 Take Aim / +2 Homing)', move: 6,
+    desc: 'A lone wanderer holding a broken sword hilt with a mysterious magical aura. Melee-magic hybrid.',
+    abilities: [
+      { name: 'Mana Abjuration', desc: 'Half Mind = Parry. Can use Mana to Dodge/Block.' },
+      { name: 'Touch Magic', desc: '2 Actions. May infuse a spell into a melee attack.' },
+      { name: 'Cleave', desc: '2 Actions. AoE around user.' },
+      { name: 'Lightning Spear', desc: '1d6 lightning + Mind. Can critically hit, +2 crit range.' },
+      { name: 'Thaumic Armaments', desc: 'Draw action: manifest unstable Broadsword dealing Mind+d8 physical damage.' }
+    ],
+    equipment: 'Manifested Broadsword (Mind+d8), Brigandine (+1 Armor), Spell Range 10',
+    loot: 'Brigandine'
+  },
+  // ---- TIER 1 BOSSES ----
+  {
+    name: 'Noble', tier: 1, cat: 'boss',
+    hp: 50, stam: 45, mana: 0,
+    str: 'd12', dex: 'd12+2', min: 'd4', wil: 'd4', vig: 'd6',
+    parry: 9, armor: 7, ward: 0,
+    dmg: '1d12+1d6/1d4 (+2 Prec., +2 Practiced Fencing, +2 AP Revolver)', acc: '1d12+2 (+2 Prec., +2 Pract.)', move: 6,
+    desc: 'Confident noble protected by ancient power. Leads troops into battle with arrogant fearlessness.',
+    abilities: [
+      { name: 'Ancient Bloodline Amulet', desc: 'Starts with 2 Poise. Cannot regain until Short Rest after losing it.' },
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: 'Enduring Sentinel', desc: 'Starts turn: gain 5 damage shields free. Starts combat with 10 shields.' },
+      { name: 'Dual Strike with Point Blank Shot', desc: '2 Actions. Attack twice same MAP. No AoO provoke for melee+ranged combined attack.' },
+      { name: 'Shattering Slam', desc: 'When shields destroyed by melee: 5ft Str physical cloak.' },
+      { name: 'Rallying Cry', desc: '1 Action: ally within 20ft attacks an enemy. On HP hit, ally gains 10 damage shields.' },
+      { name: 'Precision Strikes', desc: '4 Stamina. +2 Damage and Accuracy.' },
+      { name: 'Practiced Fencing', desc: '4 Stamina. +2 Accuracy and +2 Primary Damage.' },
+      { name: 'Lethality', desc: '2 stacks of Bleeding on hit. Aggravate on crit.' }
+    ],
+    equipment: 'Scimitar (1d6), Revolver (2d6 +2 AP, range 10, ammo 6), Scale Armor (+7 Armor)',
+    loot: 'Equipped weapons, Scale Armor'
+  },
+  {
+    name: 'Aristocrat', tier: 1, cat: 'boss',
+    hp: 40, stam: 10, mana: 40,
+    str: 'd4', dex: 'd4', min: 'd12+2', wil: 'd12+1', vig: 'd4',
+    parry: 8, armor: 0, ward: 4,
+    dmg: '1d12+2+1d6 (spells)', acc: '1d12+2 (+2 Homing)', move: 6,
+    desc: 'Member of high society with extensive magical training. Shows noble blood through magical prowess.',
+    abilities: [
+      { name: 'Mana Abjuration', desc: 'Half Mind = Parry. Can use Mana to Dodge/Block.' },
+      { name: 'Fire Flicker (Complex)', desc: '1d6 fire + Mind, 10ft cloak. 1 Searing on HP hit. 4 mana, 2 Actions.' },
+      { name: 'Lightning Spear (Complex)', desc: '1d6 lightning + Mind. Crit: +2 range. 4 mana, 2 Actions.' },
+      { name: 'Summon Phantom Swarm (Complex)', desc: 'Summons 3 Fragment Phantoms (10 HP each). 4 mana, 2 Actions.' },
+      { name: 'Thaumic Enhancement (Simple)', desc: 'Buffs weapon with rune enchantment until end of combat. 2 mana, 1 Action.' },
+      { name: 'Shadowy Erosion (Simple)', desc: 'Wil vs Wil → Rend + 4 Poison. 2 mana.' },
+      { name: 'Ghastly Trickery (Simple)', desc: 'Wil vs Wil → Root. 2 mana.' },
+      { name: 'Relocation Gate (Simple)', desc: 'Teleport self or adjacent friendly 10 spaces to visible space. 2 mana.' }
+    ],
+    equipment: 'Staff (family crest, Spell Range 13)',
+    loot: 'Staff'
+  },
+  {
+    name: 'Ogre', tier: 1, cat: 'boss',
+    hp: 60, stam: 45, mana: 0,
+    str: 'd12+4', dex: 'd4', min: 'd4', wil: 'd4', vig: 'd12+1',
+    parry: 4, armor: 12, ward: 0,
+    dmg: '2d12+10+1d12+4 (full combo)', acc: '1d12+4 (+2 Prec.)', move: 6,
+    desc: 'Gigantic brute put to singular purpose: crush enemies with overwhelming force and brutality.',
+    abilities: [
+      { name: 'Unyielding Bulk', desc: 'Starts with 2 Poise. Cannot regain until Short Rest.' },
+      { name: 'Gigantic', desc: '2×2 size. +5ft melee reach. +1 Str and Vig.' },
+      { name: 'Attack of Opportunity', desc: 'May use Attacks of Opportunity.' },
+      { name: 'Brute', desc: 'Uses Strength for Accuracy on melee attacks.' },
+      { name: "Titan's Grip", desc: '2h weapons in 1h.' },
+      { name: 'Cleave', desc: '2 Actions. Targeted AoE.' },
+      { name: 'Vicious Strike', desc: '2 Actions. Add Str die twice.' },
+      { name: 'Armor Crusher', desc: '8 Stamina. +5 Primary Damage, +2 Accuracy.' }
+    ],
+    equipment: 'Labrys (1d12), Caestus (1d4), Half Plate (+12 Armor)',
+    loot: 'Equipped weapons'
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const activeTierFilters = new Set(['0','1','2']);
+const activeCatFilters  = new Set(['mook','elite','boss']);
+let roster = [];
+let lastCalcExpPerPlayer = 0;
+
+// Default characters from Drive
+let characters = [
+  { name: 'Ashura no Kairi', exp: 1, lvl: 1 },
+  { name: 'Kumohana Hayase', exp: 4, lvl: 2 },
+  { name: 'Kumohana "Sam" Samara', exp: 4, lvl: 2 },
+  { name: 'Thelexia Hellbane', exp: 5, lvl: 1 },
+  { name: 'Igarashi Nariko', exp: 0, lvl: 2 },
+  { name: 'Licia Capran', exp: 0, lvl: 2 },
+  { name: 'Isvalda', exp: 4, lvl: 1 },
+  { name: 'Serphina Baecker', exp: 6, lvl: 2 },
+  { name: 'Otsutsuka Shiori', exp: 8, lvl: 1 },
+  { name: 'Arabella Octavia Delacroix', exp: 0, lvl: 2 },
+  { name: 'Lionel Halleck', exp: 0, lvl: 3 },
+  { name: 'Kumohana Fumi', exp: 9, lvl: 2 },
+  { name: 'Yukimura Botan', exp: 4, lvl: 2 },
+  { name: 'Shinzuhiro Touji', exp: 4, lvl: 2 },
+  { name: 'Zora Aelia Heliopsis', exp: 8, lvl: 1 },
+  { name: 'Bao Xiaolong', exp: 4, lvl: 2 },
+  { name: 'Vanica', exp: 0, lvl: 2 },
+  { name: 'Katarina Valkir', exp: 4, lvl: 2 },
+  { name: 'Simon', exp: 9, lvl: 1 },
+  { name: 'Ann Moreau', exp: 4, lvl: 1 },
+  { name: 'Penny Copper', exp: 5, lvl: 1 },
+  { name: 'Matthew Wallach', exp: 3, lvl: 1 },
+  { name: 'Emily Argos', exp: 3, lvl: 1 },
+  { name: 'Olivier Ashmont', exp: 3, lvl: 1 },
+  { name: 'Lyssandra Sarrrin', exp: 3, lvl: 1 },
+  { name: 'Shimokaze Sagita', exp: 0, lvl: 1 },
+  { name: 'Juno Ell', exp: 4, lvl: 1 },
+  { name: 'Master Sgt. Albert Murphy', exp: 4, lvl: 2 },
+  { name: 'Annaliese Nachtnebel', exp: 4, lvl: 2 },
+  { name: 'Adam Wolfe', exp: 0, lvl: 2 },
+  { name: 'Astraea Valen', exp: 8, lvl: 2 },
+  { name: 'Nero Faust', exp: 0, lvl: 2 },
+  { name: 'Olivia Castelan', exp: 7, lvl: 2 },
+  { name: 'Kasey Kumohana', exp: 4, lvl: 1 },
+  { name: 'Linnea "Lily" Bergsen', exp: 0, lvl: 1 },
+  { name: 'Dessa de Faeric', exp: 0, lvl: 1 },
+  { name: 'Lily Carnation', exp: 4, lvl: 1 },
+  { name: 'Narla', exp: 4, lvl: 1 },
+];
+
+// ============================================================
+// NAV
+// ============================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============================================================
+// ENCYCLOPEDIA
+// ============================================================
+function toggleFilter(btn) {
+  const filter = btn.dataset.filter;
+  const val    = btn.dataset.val;
+  const set    = filter === 'tier' ? activeTierFilters : activeCatFilters;
+  if (set.has(val)) { set.delete(val); btn.classList.remove('active'); }
+  else              { set.add(val);    btn.classList.add('active'); }
+  filterEnemies();
+}
+
+function filterEnemies() {
+  const query = document.getElementById('enc-search').value.toLowerCase();
+  const grid  = document.getElementById('enemy-grid');
+  grid.innerHTML = '';
+  const filtered = ENEMIES.filter(e =>
+    activeTierFilters.has(String(e.tier)) &&
+    activeCatFilters.has(e.cat) &&
+    (e.name.toLowerCase().includes(query) || e.desc.toLowerCase().includes(query))
+  );
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">No enemies match your filters.</div>';
+    return;
+  }
+  filtered.forEach(e => grid.appendChild(buildEnemyCard(e)));
+}
+
+function buildEnemyCard(e) {
+  const div = document.createElement('div');
+  div.className = 'enemy-card';
+  div.dataset.name = e.name;
+
+  const tierLabel  = `Tier ${e.tier}`;
+  const catLabel   = e.cat.charAt(0).toUpperCase() + e.cat.slice(1);
+  const tierCls    = `badge-tier${e.tier}`;
+  const catCls     = `badge-${e.cat}`;
+  const manaStr    = e.mana > 0 ? ` / <span>${e.mana}M</span>` : '';
+
+  div.innerHTML = `
+    <div class="enemy-header" onclick="toggleCard(this.parentElement)">
+      <span class="enemy-badge ${tierCls}">${tierLabel}</span>
+      <span class="enemy-badge ${catCls}">${catLabel}</span>
+      <span class="enemy-name">${e.name}</span>
+      <span class="enemy-hp-badge"><span>${e.hp}</span>HP / ${e.stam}S${manaStr}</span>
+    </div>
+    <div class="enemy-quick-stats">
+      <span class="stat-chip">STR <b>${e.str}</b></span>
+      <span class="stat-chip">DEX <b>${e.dex}</b></span>
+      <span class="stat-chip">MIN <b>${e.min}</b></span>
+      <span class="stat-chip">WIL <b>${e.wil}</b></span>
+      <span class="stat-chip">VIG <b>${e.vig}</b></span>
+      <span class="stat-chip">PRY <b>${e.parry}</b></span>
+      <span class="stat-chip">ARM <b>${e.armor}</b></span>
+      ${e.ward > 0 ? `<span class="stat-chip">WARD <b>${e.ward}</b></span>` : ''}
+    </div>
+    <div class="enemy-body">
+      <div class="enemy-desc">${e.desc}</div>
+      <div class="stat-grid">
+        <div class="stat-block"><span class="label">Damage</span><span class="val" style="font-size:10px">${e.dmg}</span></div>
+        <div class="stat-block"><span class="label">Accuracy</span><span class="val" style="font-size:10px">${e.acc}</span></div>
+        <div class="stat-block"><span class="label">Move</span><span class="val">${e.move} sp.</span></div>
+      </div>
+      <div class="ability-list">
+        ${e.abilities.map(a => `<div class="ability-item"><span class="ability-name">${a.name}</span> — ${a.desc}</div>`).join('')}
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px"><b style="color:var(--accent)">Equipment:</b> ${e.equipment}</div>
+      <div class="loot-tag">Loot: <span>${e.loot}</span></div>
+    </div>
+  `;
+  return div;
+}
+
+function toggleCard(card) {
+  card.classList.toggle('expanded');
+}
+
+// ============================================================
+// ENCOUNTER BUILDER
+// ============================================================
+function populatePicker() {
+  const sel = document.getElementById('enc-picker');
+  ENEMIES.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.name;
+    opt.textContent = `[T${e.tier} ${e.cat.charAt(0).toUpperCase() + e.cat.slice(1)}] ${e.name}`;
+    sel.appendChild(opt);
+  });
+}
+
+function addToRoster() {
+  const name = document.getElementById('enc-picker').value;
+  if (!name) return;
+  const enemy = ENEMIES.find(e => e.name === name);
+  if (!enemy) return;
+  const existing = roster.find(r => r.enemy.name === name);
+  if (existing) { existing.count++; }
+  else          { roster.push({ enemy, count: 1 }); }
+  renderRoster();
+}
+
+function changeCount(idx, delta) {
+  roster[idx].count += delta;
+  if (roster[idx].count <= 0) roster.splice(idx, 1);
+  renderRoster();
+}
+
+function clearRoster() {
+  roster = [];
+  renderRoster();
+}
+
+function renderRoster() {
+  const list = document.getElementById('roster-list');
+  if (!roster.length) {
+    list.innerHTML = '<div class="empty-state">No enemies in roster yet.</div>';
+    updateSummary();
+    return;
+  }
+  list.innerHTML = roster.map((r, i) => {
+    const e = r.enemy;
+    const catCls = `badge-${e.cat}`;
+    return `<div class="roster-item">
+      <span class="enemy-badge ${catCls}" style="font-size:8px">${e.cat.toUpperCase()}</span>
+      <span class="r-name">${e.name}</span>
+      <span class="r-stats">T${e.tier} · ${e.hp}HP/${e.stam}S${e.mana > 0 ? '/'+e.mana+'M' : ''}</span>
+      <div class="count-ctrl">
+        <button class="exp-btn" onclick="changeCount(${i},-1)">−</button>
+        <span class="count-num">×${r.count}</span>
+        <button class="exp-btn" onclick="changeCount(${i},1)">+</button>
+      </div>
+      <button class="remove-btn" onclick="changeCount(${i},-999)">✕</button>
+    </div>`;
+  }).join('');
+  updateSummary();
+}
+
+function updateSummary() {
+  let units=0, hp=0, stam=0, mana=0, rawExp=0;
+  roster.forEach(r => {
+    units += r.count;
+    hp    += r.enemy.hp   * r.count;
+    stam  += r.enemy.stam * r.count;
+    mana  += r.enemy.mana * r.count;
+    const expVal = r.enemy.cat === 'mook' ? 1 : r.enemy.cat === 'elite' ? 2 : 4;
+    rawExp += expVal * r.count;
+  });
+  const players = parseInt(document.getElementById('player-count').value) || 4;
+  const perPlayer = Math.min(4, Math.floor((rawExp * 2) / players));
+
+  document.getElementById('sum-units').textContent = units;
+  document.getElementById('sum-hp').textContent    = hp;
+  document.getElementById('sum-stam').textContent  = stam;
+  document.getElementById('sum-mana').textContent  = mana;
+  document.getElementById('raw-exp').textContent   = rawExp;
+  document.getElementById('calc-exp-display').textContent = perPlayer + ' exp/player (cap 4)';
+}
+
+function copyRoster() {
+  if (!roster.length) return;
+  let txt = '⚔ ENCOUNTER ROSTER\n';
+  txt += '─'.repeat(30) + '\n';
+  roster.forEach(r => {
+    txt += `${r.count}× ${r.enemy.name} (T${r.enemy.tier} ${r.enemy.cat}) — ${r.enemy.hp}HP/${r.enemy.stam}S\n`;
+  });
+  txt += '─'.repeat(30) + '\n';
+  const players = parseInt(document.getElementById('player-count').value) || 4;
+  let rawExp = 0;
+  roster.forEach(r => {
+    rawExp += (r.enemy.cat === 'mook' ? 1 : r.enemy.cat === 'elite' ? 2 : 4) * r.count;
+  });
+  const perPlayer = Math.min(4, Math.floor((rawExp * 2) / players));
+  txt += `EXP reward: ${perPlayer}/player (${players} players, ${rawExp} raw exp)\n`;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+// ============================================================
+// EXP TRACKER
+// ============================================================
+function renderCharacters() {
+  const list = document.getElementById('character-list');
+  list.innerHTML = '';
+  characters.forEach((c, i) => {
+    const pct = (c.exp / 10) * 100;
+    const isTrial = c.lvl === 3 || c.lvl === 6 || c.lvl === 9;
+    const isReady = c.exp >= 10;
+    let badge = '';
+    if (isReady && !isTrial) badge = '<span class="milestone milestone-ready">▲ Level Up</span>';
+    else if (isTrial) badge = '<span class="milestone milestone-trial">⚠ Trial</span>';
+
+    list.innerHTML += `<div class="char-row">
+      <span class="char-name">${c.name}</span>
+      ${badge}
+      <span class="char-lvl">Lv ${c.lvl}</span>
+      <div class="exp-bar-wrap"><div class="exp-bar-fill" style="width:${Math.min(100,pct)}%"></div></div>
+      <span class="exp-text">${c.exp}/10</span>
+      <div class="exp-btns">
+        <button class="exp-btn" title="−1 EXP" onclick="adjustExp(${i},-1)">−</button>
+        <button class="exp-btn" title="+1 EXP" onclick="adjustExp(${i},1)">+</button>
+        <button class="exp-btn" title="Level Up" onclick="levelUp(${i})" style="font-size:10px;width:auto;padding:0 6px;color:var(--accent)">↑Lv</button>
+      </div>
+    </div>`;
+  });
+}
+
+function adjustExp(i, delta) {
+  characters[i].exp = Math.max(0, Math.min(10, characters[i].exp + delta));
+  renderCharacters();
+}
+
+function levelUp(i) {
+  if (characters[i].exp >= 10) {
+    characters[i].exp = 0;
+    characters[i].lvl++;
+    renderCharacters();
+  }
+}
+
+function showAddChar() {
+  document.getElementById('add-char-form').style.display = 'block';
+  document.getElementById('new-char-name').focus();
+}
+function hideAddChar() {
+  document.getElementById('add-char-form').style.display = 'none';
+}
+function addCharacter() {
+  const name = document.getElementById('new-char-name').value.trim();
+  const lvl  = parseInt(document.getElementById('new-char-lvl').value) || 1;
+  if (!name) return;
+  characters.push({ name, exp: 0, lvl });
+  hideAddChar();
+  renderCharacters();
+}
+
+function calculateExp() {
+  const mooks   = parseInt(document.getElementById('calc-mooks').value) || 0;
+  const elites  = parseInt(document.getElementById('calc-elites').value) || 0;
+  const bosses  = parseInt(document.getElementById('calc-bosses').value) || 0;
+  const quest   = parseInt(document.getElementById('calc-quest').value) || 0;
+  const players = parseInt(document.getElementById('calc-players').value) || 4;
+
+  const rawCombat = mooks*1 + elites*2 + bosses*4;
+  const total     = rawCombat + quest;
+  const perPlayer = Math.min(4, Math.floor((total * 2) / players));
+  lastCalcExpPerPlayer = perPlayer;
+
+  const resultEl = document.getElementById('calc-result');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div><span class="result-key">Combat Exp Pool: </span><span class="result-val">${rawCombat}</span></div>
+    <div><span class="result-key">Quest Bonus: </span><span class="result-val">+${quest}</span></div>
+    <div><span class="result-key">Total Pool: </span><span class="result-val">${total}</span></div>
+    <div><span class="result-key">Formula: </span><span class="result-val">(${total} × 2) ÷ ${players}</span></div>
+    <div><span class="result-key">Raw Per Player: </span><span class="result-val">${Math.floor((total * 2) / players)}</span></div>
+    <div><span class="result-key">After Cap (max 4): </span><span class="result-val" style="font-size:16px">${perPlayer} EXP</span></div>
+  `;
+  document.getElementById('apply-exp-btn').style.display = 'block';
+}
+
+function applyExpToAll() {
+  if (!lastCalcExpPerPlayer) return;
+  characters.forEach(c => { c.exp = Math.min(10, c.exp + lastCalcExpPerPlayer); });
+  renderCharacters();
+  const btn = document.getElementById('apply-exp-btn');
+  btn.textContent = `✓ Applied ${lastCalcExpPerPlayer} EXP to all characters!`;
+  setTimeout(() => { btn.textContent = '✓ Apply to All Characters'; }, 3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+filterEnemies();
+populatePicker();
+renderCharacters();
+updateSummary();
+</script>
+</body>
+</html>
