@@ -879,6 +879,181 @@
   .char-search:focus { border-color: var(--accent); }
   .char-search::placeholder { color: var(--muted); }
 
+  /* ===== ACTIVE ENCOUNTER MODE ===== */
+  .encounter-active-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--bg);
+    flex-direction: column;
+  }
+  .encounter-active-overlay.open { display: flex; }
+
+  .active-enc-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 10px 20px;
+    background: rgba(10,10,15,0.98);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .active-enc-header .logo { font-size: 14px; }
+  .active-enc-title {
+    font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); flex: 1;
+  }
+  .active-enc-stats {
+    display: flex; gap: 16px; align-items: center;
+  }
+  .active-enc-stat {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted);
+  }
+  .active-enc-stat b { color: var(--text); }
+  .close-active-btn {
+    background: rgba(196,58,58,0.1); border: 1px solid rgba(196,58,58,0.3);
+    border-radius: 3px; color: #c43a3a;
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 6px 12px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .close-active-btn:hover { background: rgba(196,58,58,0.2); }
+
+  .active-enc-body {
+    flex: 1; overflow-y: auto;
+    padding: 20px;
+    columns: 340px; column-gap: 14px;
+  }
+
+  .active-stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    break-inside: avoid;
+    margin-bottom: 14px;
+    display: inline-block; width: 100%;
+  }
+  .active-stat-card.boss-card { border-color: rgba(196,58,58,0.4); }
+  .active-stat-card.elite-card { border-color: rgba(196,147,58,0.35); }
+
+  .active-card-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .active-card-name {
+    font-family: 'Cinzel', serif; font-size: 15px; font-weight: 700;
+    color: var(--text); flex: 1;
+  }
+  .active-card-count {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    color: var(--muted);
+  }
+  .active-stat-row {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+  }
+  .active-ability {
+    font-size: 13px; line-height: 1.5; margin-bottom: 4px;
+    padding-left: 10px; position: relative; color: var(--text);
+  }
+  .active-ability::before {
+    content: '◆'; position: absolute; left: 0;
+    color: var(--accent); font-size: 8px; top: 4px;
+  }
+  .active-ability b { color: var(--accent); }
+  .active-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 8px 0;
+  }
+  .active-equipment {
+    font-size: 12px; color: var(--muted); font-style: italic; margin-top: 6px;
+  }
+
+  /* ===== LOOT SECTION ===== */
+  .loot-section {
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .loot-dice-output {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text);
+    line-height: 1.8;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+  .loot-dice-output .dice-tag {
+    display: inline-block;
+    background: rgba(196,147,58,0.12);
+    border: 1px solid rgba(196,147,58,0.25);
+    border-radius: 2px;
+    padding: 1px 5px;
+    margin: 2px 2px;
+    color: var(--accent);
+    font-size: 11px;
+  }
+  .loot-note { font-size: 11px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+  /* ===== ADMIN PIN ===== */
+  .pin-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.85);
+    align-items: center; justify-content: center;
+  }
+  .pin-overlay.open { display: flex; }
+  .pin-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px 40px;
+    text-align: center;
+    min-width: 280px;
+  }
+  .pin-box h2 {
+    font-family: 'Cinzel', serif; font-size: 16px; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .pin-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .pin-dots {
+    display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;
+  }
+  .pin-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--border); transition: background 0.15s;
+  }
+  .pin-dot.filled { background: var(--accent); }
+  .pin-keypad {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-bottom: 12px;
+  }
+  .pin-key {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px;
+    font-family: 'Share Tech Mono', monospace; font-size: 16px;
+    color: var(--text); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pin-key:hover { border-color: var(--accent); color: var(--accent); }
+  .pin-key.wide { grid-column: span 3; }
+  .pin-error { color: #c43a3a; font-size: 12px; min-height: 18px; }
+  .pin-bypass {
+    margin-top: 10px; font-size: 11px; color: var(--muted);
+    cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .pin-bypass:hover { color: var(--text); }
+
+  /* Admin indicator */
+  .admin-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(196,147,58,0.12); border: 1px solid rgba(196,147,58,0.3);
+    border-radius: 2px; padding: 2px 8px; color: var(--accent);
+    cursor: pointer;
+  }
+  .admin-badge.locked { background: rgba(122,122,122,0.1); border-color: var(--border); color: var(--muted); }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -886,6 +1061,51 @@
 </style>
 </head>
 <body>
+
+<!-- ===== PIN OVERLAY ===== -->
+<div id="pin-overlay" class="pin-overlay">
+  <div class="pin-box">
+    <h2>🔒 Admin Access</h2>
+    <p>Enter the GM PIN to edit EXP</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key" onclick="pinPress('back')" style="color:var(--muted)">⌫</button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key" onclick="pinPress('cancel')" style="color:var(--muted)">✕</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-bypass" onclick="pinBypass()">Continue as viewer (read-only)</div>
+  </div>
+</div>
+
+<!-- ===== ACTIVE ENCOUNTER OVERLAY ===== -->
+<div id="active-enc-overlay" class="encounter-active-overlay">
+  <div class="active-enc-header">
+    <div class="logo">TSR <span>Active Encounter</span></div>
+    <div class="active-enc-title" id="active-enc-title">Encounter</div>
+    <div class="active-enc-stats">
+      <span class="active-enc-stat">Units: <b id="ae-units">0</b></span>
+      <span class="active-enc-stat">HP: <b id="ae-hp">0</b></span>
+      <span class="active-enc-stat">Stam: <b id="ae-stam">0</b></span>
+    </div>
+    <button class="close-active-btn" onclick="closeActiveEncounter()">✕ End Encounter</button>
+  </div>
+  <div class="active-enc-body" id="active-enc-body"></div>
+</div>
 
 <header>
   <div class="logo">TSR <span>GM Interface</span></div>
@@ -959,14 +1179,20 @@
         <div class="sum-row"><span class="sk">Total Mana</span><span class="sv" id="sum-mana">0</span></div>
         <div class="exp-reward-section">
           <div class="section-title" style="margin-bottom:10px">EXP Reward</div>
-          <div class="exp-reward-row"><span>Raw Exp Pool</span><span id="raw-exp">0</span></div>
-          <div class="exp-reward-row"><span>After Formula (÷ players)</span><span id="calc-exp-display">—</span></div>
+          <div class="exp-reward-row"><span>Tallied EXP Pool</span><span id="raw-exp">0</span></div>
+          <div class="exp-reward-row"><span>Per Player (Pool ÷ players)</span><span id="calc-exp-display">—</span></div>
           <div style="margin-top:8px">
             <label class="calc-label">Players in encounter</label>
             <input type="number" class="calc-input" id="player-count" value="4" min="1" max="12" onchange="updateSummary()">
           </div>
         </div>
-        <button class="copy-btn" onclick="copyRoster()">📋 Copy Roster to Clipboard</button>
+        <div class="loot-section">
+          <div class="section-title" style="margin-bottom:8px">Salvage Loot</div>
+          <div class="loot-note">Top 25 loot dice available (highest value first). Each enemy looted once.</div>
+          <div class="loot-dice-output" id="loot-dice-output"><span style="color:var(--muted);font-style:italic">Add enemies to see loot dice</span></div>
+        </div>
+        <button class="calc-btn" style="margin-top:14px;background:rgba(196,147,58,0.12);border-color:rgba(196,147,58,0.4);color:var(--accent)" onclick="activateEncounter()" id="activate-btn" disabled>⚔ Activate Encounter</button>
+        <button class="copy-btn" onclick="copyRoster()" style="margin-top:8px">📋 Copy Roster to Clipboard</button>
       </div>
     </div>
 
@@ -975,7 +1201,10 @@
 
 <!-- ===================== EXP TRACKER ===================== -->
 <div id="page-exptracker" class="page">
-  <div class="section-title">Character EXP Tracker — Tier 1</div>
+  <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+    <span>Character EXP Tracker — Tier 1</span>
+    <span id="admin-badge" class="admin-badge locked" onclick="promptAdmin()">🔒 Viewer Mode</span>
+  </div>
   <div class="exp-three-panel">
 
     <!-- LEFT: All characters source list -->
@@ -1815,8 +2044,24 @@ function renderRoster() {
   updateSummary();
 }
 
+// Loot dice table from Contract Objectives doc
+const LOOT_DICE = {
+  0: { mook: '1d2',    elite: '1d6',    boss: '1d10'   },
+  1: { mook: '1d4',    elite: '1d8',    boss: '1d12'   },
+  2: { mook: '1d6',    elite: '1d10',   boss: '1d12+1' },
+};
+// Dice sort order (higher = better)
+const DICE_RANK = {'1d2':1,'1d4':2,'1d6':3,'1d8':4,'1d10':5,'1d12':6,'1d12+1':7,'1d12+2':8,'1d12+3':9};
+
+function getLootDie(tier, cat) {
+  const t = LOOT_DICE[tier] || LOOT_DICE[1];
+  return t[cat] || '1d4';
+}
+
 function updateSummary() {
   let units=0, hp=0, stam=0, mana=0, rawExp=0;
+  const allDice = [];
+
   roster.forEach(r => {
     units += r.count;
     hp    += r.enemy.hp   * r.count;
@@ -1824,16 +2069,41 @@ function updateSummary() {
     mana  += r.enemy.mana * r.count;
     const expVal = r.enemy.cat === 'mook' ? 1 : r.enemy.cat === 'elite' ? 2 : 4;
     rawExp += expVal * r.count;
+    // Collect loot dice — one per unit
+    const die = getLootDie(r.enemy.tier, r.enemy.cat);
+    for (let i = 0; i < r.count; i++) allDice.push(die);
   });
+
   const players = parseInt(document.getElementById('player-count').value) || 4;
-  const perPlayer = Math.min(4, Math.floor((rawExp * 2) / players));
+  const perPlayer = Math.floor(rawExp / players);
 
   document.getElementById('sum-units').textContent = units;
   document.getElementById('sum-hp').textContent    = hp;
   document.getElementById('sum-stam').textContent  = stam;
   document.getElementById('sum-mana').textContent  = mana;
   document.getElementById('raw-exp').textContent   = rawExp;
-  document.getElementById('calc-exp-display').textContent = perPlayer + ' exp/player (cap 4)';
+  document.getElementById('calc-exp-display').textContent = perPlayer + ' exp/player';
+
+  // Sort dice best-first, take top 25
+  allDice.sort((a,b) => (DICE_RANK[b]||0) - (DICE_RANK[a]||0));
+  const top25 = allDice.slice(0, 25);
+  const lootEl = document.getElementById('loot-dice-output');
+  if (!top25.length) {
+    lootEl.innerHTML = '<span style="color:var(--muted);font-style:italic">Add enemies to see loot dice</span>';
+  } else {
+    // Group dice
+    const counts = {};
+    top25.forEach(d => { counts[d] = (counts[d]||0) + 1; });
+    const sorted = Object.entries(counts).sort((a,b) => (DICE_RANK[b[0]]||0) - (DICE_RANK[a[0]]||0));
+    lootEl.innerHTML = sorted.map(([die, n]) =>
+      `<span class="dice-tag">${n > 1 ? n+'× ' : ''}${die}</span>`
+    ).join('') +
+    `<div style="margin-top:6px;color:var(--muted);font-size:10px">${top25.length} dice shown${allDice.length > 25 ? ` (${allDice.length} total available)` : ''} · Each player picks up to 5</div>`;
+  }
+
+  // Enable/disable activate button
+  const btn = document.getElementById('activate-btn');
+  if (btn) { btn.disabled = !roster.length; btn.style.opacity = roster.length ? '1' : '0.4'; }
 }
 
 function copyRoster() {
@@ -1846,14 +2116,90 @@ function copyRoster() {
   const players = parseInt(document.getElementById('player-count').value) || 4;
   let rawExp = 0;
   roster.forEach(r => { rawExp += (r.enemy.cat === 'mook' ? 1 : r.enemy.cat === 'elite' ? 2 : 4) * r.count; });
-  const perPlayer = Math.min(4, Math.floor((rawExp * 2) / players));
-  txt += `EXP reward: ${perPlayer}/player (${players} players, ${rawExp} raw exp)\n`;
+  txt += `EXP reward: ${Math.floor(rawExp/players)}/player (${players} players, ${rawExp} pool)\n`;
   navigator.clipboard.writeText(txt).then(() => {
     const btn = document.querySelector('.copy-btn');
     const orig = btn.textContent;
     btn.textContent = '✓ Copied!';
     setTimeout(() => btn.textContent = orig, 2000);
   });
+}
+
+// ============================================================
+// ACTIVATE ENCOUNTER
+// ============================================================
+function activateEncounter() {
+  if (!roster.length) return;
+  const overlay = document.getElementById('active-enc-overlay');
+  const body    = document.getElementById('active-enc-body');
+
+  let totalUnits = 0, totalHP = 0, totalStam = 0;
+  roster.forEach(r => {
+    totalUnits += r.count;
+    totalHP    += r.enemy.hp * r.count;
+    totalStam  += r.enemy.stam * r.count;
+  });
+  document.getElementById('ae-units').textContent = totalUnits;
+  document.getElementById('ae-hp').textContent    = totalHP;
+  document.getElementById('ae-stam').textContent  = totalStam;
+
+  body.innerHTML = '';
+  // Sort: bosses first, then elites, then mooks
+  const sorted = [...roster].sort((a,b) => {
+    const order = {boss:0, elite:1, mook:2};
+    return order[a.enemy.cat] - order[b.enemy.cat];
+  });
+
+  sorted.forEach(r => {
+    const e = r.enemy;
+    const cardCls = e.cat === 'boss' ? 'boss-card' : e.cat === 'elite' ? 'elite-card' : '';
+    const catCls  = `badge-${e.cat}`;
+    const tierCls = `badge-tier${e.tier}`;
+    const manaStr = e.mana > 0 ? ` / ${e.mana}M` : '';
+
+    const card = document.createElement('div');
+    card.className = `active-stat-card ${cardCls}`;
+    card.innerHTML = `
+      <div class="active-card-header">
+        <span class="enemy-badge ${tierCls}">T${e.tier}</span>
+        <span class="enemy-badge ${catCls}">${e.cat.charAt(0).toUpperCase()+e.cat.slice(1)}</span>
+        <span class="active-card-name">${e.name}</span>
+        ${r.count > 1 ? `<span class="active-card-count">×${r.count}</span>` : ''}
+      </div>
+      <div class="active-stat-row">
+        <span class="stat-chip">HP <b>${e.hp}</b></span>
+        <span class="stat-chip">STM <b>${e.stam}</b></span>
+        ${e.mana > 0 ? `<span class="stat-chip">MNA <b>${e.mana}</b></span>` : ''}
+        <span class="stat-chip">PRY <b>${e.parry}</b></span>
+        <span class="stat-chip">ARM <b>${e.armor}</b></span>
+        ${e.ward > 0 ? `<span class="stat-chip">WRD <b>${e.ward}</b></span>` : ''}
+      </div>
+      <div class="active-stat-row">
+        <span class="stat-chip">STR <b>${e.str}</b></span>
+        <span class="stat-chip">DEX <b>${e.dex}</b></span>
+        <span class="stat-chip">MIN <b>${e.min}</b></span>
+        <span class="stat-chip">WIL <b>${e.wil}</b></span>
+        <span class="stat-chip">VIG <b>${e.vig}</b></span>
+      </div>
+      <div class="active-stat-row">
+        <span class="stat-chip" style="background:rgba(196,58,58,0.08);border-color:rgba(196,58,58,0.2)">DMG <b style="color:#c47a7a">${e.dmg}</b></span>
+        <span class="stat-chip" style="background:rgba(58,123,196,0.08);border-color:rgba(58,123,196,0.2)">ACC <b style="color:#7aaac4">${e.acc}</b></span>
+        <span class="stat-chip">MOV <b>${e.move}</b></span>
+      </div>
+      <hr class="active-divider">
+      <div>
+        ${e.abilities.map(a => `<div class="active-ability"><b>${a.name}</b> — ${a.desc}</div>`).join('')}
+      </div>
+      <div class="active-equipment">⚙ ${e.equipment}</div>
+    `;
+    body.appendChild(card);
+  });
+
+  overlay.classList.add('open');
+}
+
+function closeActiveEncounter() {
+  document.getElementById('active-enc-overlay').classList.remove('open');
 }
 
 // ============================================================
@@ -1889,11 +2235,11 @@ function renderCharacterSource() {
       ${badge}
       <span class="csc-lvl">Lv ${c.lvl}</span>
       <span class="csc-exp">${c.exp}/10</span>
-      <div class="exp-btns" style="gap:3px">
+      ${isAdmin ? `<div class="exp-btns" style="gap:3px">
         <button class="exp-btn" style="width:18px;height:18px;font-size:11px" onclick="adjustExp(${i},-1); event.stopPropagation()">−</button>
         <button class="exp-btn" style="width:18px;height:18px;font-size:11px" onclick="adjustExp(${i},1); event.stopPropagation()">+</button>
         ${isReady && !isTrial ? `<button class="exp-btn" style="width:auto;padding:0 5px;font-size:9px;color:var(--accent)" onclick="levelUp(${i}); event.stopPropagation()">↑Lv</button>` : ''}
-      </div>
+      </div>` : ''}
       ${!inSession ? `<button class="csc-add" onclick="addCharToSession(${i}); event.stopPropagation()">+</button>` : ''}
     `;
 
@@ -2050,7 +2396,7 @@ function calculateExp() {
     <div><span class="result-key">After Cap: </span><span class="result-val" style="font-size:16px">${perPlayer} EXP</span></div>
     ${sessionLabel}
   `;
-  document.getElementById('apply-exp-btn').style.display = sessionChars.length ? 'block' : 'none';
+  document.getElementById('apply-exp-btn').style.display = (sessionChars.length && isAdmin) ? 'block' : 'none';
 }
 
 function applyExpToSession() {
@@ -2069,6 +2415,79 @@ function applyExpToSession() {
   document.getElementById('apply-exp-btn').style.display = 'none';
   lastCalcExpPerPlayer = 0;
 
+  renderCharacterSource();
+  renderSessionList();
+}
+
+// ============================================================
+// ADMIN PIN SYSTEM
+// ============================================================
+const ADMIN_PIN = '1234'; // Change this to your preferred PIN
+let isAdmin = false;
+let pinEntry = '';
+
+function promptAdmin() {
+  if (isAdmin) {
+    // Already admin — offer to lock
+    if (confirm('Lock admin mode?')) {
+      isAdmin = false;
+      updateAdminUI();
+    }
+    return;
+  }
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-overlay').classList.add('open');
+}
+
+function pinPress(key) {
+  if (key === 'cancel') {
+    document.getElementById('pin-overlay').classList.remove('open');
+    return;
+  }
+  if (key === 'back') {
+    pinEntry = pinEntry.slice(0, -1);
+    updatePinDots();
+    return;
+  }
+  if (pinEntry.length >= 4) return;
+  pinEntry += key;
+  updatePinDots();
+  if (pinEntry.length === 4) {
+    setTimeout(() => {
+      if (pinEntry === ADMIN_PIN) {
+        isAdmin = true;
+        document.getElementById('pin-overlay').classList.remove('open');
+        updateAdminUI();
+      } else {
+        document.getElementById('pin-error').textContent = 'Incorrect PIN';
+        pinEntry = '';
+        updatePinDots();
+      }
+    }, 200);
+  }
+}
+
+function pinBypass() {
+  document.getElementById('pin-overlay').classList.remove('open');
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('pd'+i).classList.toggle('filled', i < pinEntry.length);
+  }
+}
+
+function updateAdminUI() {
+  const badge = document.getElementById('admin-badge');
+  if (isAdmin) {
+    badge.textContent = '🔓 Admin Mode';
+    badge.classList.remove('locked');
+  } else {
+    badge.textContent = '🔒 Viewer Mode';
+    badge.classList.add('locked');
+  }
   renderCharacterSource();
   renderSessionList();
 }
