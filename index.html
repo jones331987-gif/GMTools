@@ -26,6 +26,25 @@
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* ===== KEYFRAME ANIMATIONS ===== */
+  @keyframes fadeIn      { from { opacity:0 } to { opacity:1 } }
+  @keyframes fadeSlideUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes slideDown   { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes scaleIn     { from { opacity:0; transform:scale(0.94) } to { opacity:1; transform:scale(1) } }
+  @keyframes shimmer     { 0% { background-position:200% center } 100% { background-position:-200% center } }
+  @keyframes shake       { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+  @keyframes dotPop      { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
+  @keyframes cardReveal  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes breatheGold { 0%,100%{opacity:0.7} 50%{opacity:1} }
+  @keyframes breatheGreen{ 0%,100%{opacity:0.75} 50%{opacity:1} }
+  @keyframes barGrow     { from{width:0} to{width:var(--pct)} }
+  @keyframes toastIn     { 0%{opacity:0;transform:translateY(16px) scale(0.96)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes toastOut    { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-10px) scale(0.96)} }
+  @keyframes encounterIn { 0%{opacity:0} 100%{opacity:1} }
+  @keyframes bossGlow    { 0%,100%{box-shadow:0 0 0 1px rgba(196,58,58,0.25)} 50%{box-shadow:0 0 12px 2px rgba(196,58,58,0.18)} }
+  @keyframes eliteGlow   { 0%,100%{box-shadow:0 0 0 1px rgba(196,147,58,0.2)} 50%{box-shadow:0 0 10px 2px rgba(196,147,58,0.15)} }
+  @keyframes pinSuccess  { 0%{transform:scale(1)} 40%{transform:scale(1.04)} 100%{transform:scale(1)} }
+
   body {
     background: var(--bg);
     color: var(--text);
@@ -61,8 +80,24 @@
     letter-spacing: 0.08em;
     text-shadow: 0 0 20px rgba(196,147,58,0.3);
     white-space: nowrap;
+    background: linear-gradient(90deg, #c4933a, #f0d080, #c4933a, #a07030, #c4933a);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
   }
-  .logo span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+  .logo span {
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 14px;
+    margin-left: 8px;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: var(--muted);
+    background-clip: unset;
+    animation: none;
+  }
 
   nav { display: flex; gap: 4px; flex: 1; }
   .nav-btn {
@@ -76,7 +111,12 @@
     text-transform: uppercase;
   }
   .nav-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-  .nav-btn.active { color: var(--accent); background: rgba(196,147,58,0.1); border: 1px solid rgba(196,147,58,0.25); }
+  .nav-btn.active {
+    color: var(--accent);
+    background: rgba(196,147,58,0.08);
+    border: 1px solid rgba(196,147,58,0.2);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
 
   /* ===== LAYOUT ===== */
   .page { display: none; padding: 24px; min-height: calc(100vh - 56px); }
@@ -149,14 +189,35 @@
     border-radius: 6px;
     overflow: hidden;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
     break-inside: avoid;
     margin-bottom: 12px;
     display: inline-block;
     width: 100%;
+    transition: border-color 0.22s, box-shadow 0.22s, transform 0.22s;
+    animation: fadeSlideUp 0.3s ease both;
+    position: relative;
   }
-  .enemy-card:hover { border-color: var(--accent); box-shadow: 0 0 12px rgba(196,147,58,0.1); }
-  .enemy-card.expanded { border-color: var(--accent); }
+  /* Left category accent bar */
+  .enemy-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--border);
+    transition: background 0.22s;
+  }
+  .enemy-card[data-cat="mook"]::before  { background: rgba(122,184,122,0.5); }
+  .enemy-card[data-cat="elite"]::before { background: rgba(196,147,58,0.5); }
+  .enemy-card[data-cat="boss"]::before  { background: rgba(196,58,58,0.55); }
+
+  .enemy-card:hover {
+    border-color: rgba(196,147,58,0.5);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 12px rgba(196,147,58,0.08);
+    transform: translateY(-1px);
+  }
+  .enemy-card.expanded {
+    border-color: rgba(196,147,58,0.4);
+    box-shadow: 0 2px 16px rgba(196,147,58,0.1);
+  }
 
   .enemy-header {
     display: flex; align-items: center; gap: 12px;
@@ -208,11 +269,17 @@
   .stat-chip b { color: var(--text); }
 
   .enemy-body {
-    display: none;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 16px;
+    border-top: 0px solid var(--border);
+    transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease, border-top-width 0.3s ease;
+  }
+  .enemy-card.expanded .enemy-body {
+    max-height: 900px;
     padding: 0 16px 16px;
     border-top: 1px solid var(--border);
   }
-  .enemy-card.expanded .enemy-body { display: block; }
 
   .enemy-desc {
     font-style: italic;
@@ -748,8 +815,8 @@
     border-radius: 10px;
     text-transform: uppercase;
   }
-  .milestone-trial { background: rgba(123,63,142,0.2); color: #b07acc; border: 1px solid rgba(123,63,142,0.4); }
-  .milestone-ready { background: rgba(58,138,80,0.2); color: #7ab87a; border: 1px solid rgba(58,138,80,0.4); }
+  .milestone-trial { background: rgba(123,63,142,0.15); color: #b07acc; border: 1px solid rgba(123,63,142,0.35); animation: breatheGold 3.5s ease-in-out infinite; }
+  .milestone-ready { background: rgba(58,138,80,0.15); color: #7ab87a; border: 1px solid rgba(58,138,80,0.35); animation: breatheGreen 2s ease-in-out infinite; }
 
   /* Separator ornament */
   .ornament { text-align: center; color: var(--border); margin: 8px 0; font-size: 10px; letter-spacing: 8px; }
@@ -886,7 +953,10 @@
     background: var(--bg);
     flex-direction: column;
   }
-  .encounter-active-overlay.open { display: flex; }
+  .encounter-active-overlay.open {
+    display: flex;
+    animation: encounterIn 0.3s ease forwards;
+  }
 
   .active-enc-header {
     display: flex; align-items: center; gap: 16px;
@@ -894,10 +964,12 @@
     background: rgba(10,10,15,0.98);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    box-shadow: 0 1px 0 rgba(196,147,58,0.1);
+    animation: slideDown 0.35s ease forwards;
   }
   .active-enc-header .logo { font-size: 14px; }
   .active-enc-title {
-    font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.12em;
+    font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.15em;
     text-transform: uppercase; color: var(--accent); flex: 1;
   }
   .active-enc-stats {
@@ -908,13 +980,13 @@
   }
   .active-enc-stat b { color: var(--text); }
   .close-active-btn {
-    background: rgba(196,58,58,0.1); border: 1px solid rgba(196,58,58,0.3);
+    background: rgba(196,58,58,0.08); border: 1px solid rgba(196,58,58,0.25);
     border-radius: 3px; color: #c43a3a;
     font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em;
     text-transform: uppercase; padding: 6px 12px; cursor: pointer;
     transition: all 0.2s;
   }
-  .close-active-btn:hover { background: rgba(196,58,58,0.2); }
+  .close-active-btn:hover { background: rgba(196,58,58,0.18); box-shadow: 0 0 8px rgba(196,58,58,0.2); }
 
   .active-enc-body {
     flex: 1; overflow-y: auto;
@@ -930,20 +1002,38 @@
     break-inside: avoid;
     margin-bottom: 14px;
     display: inline-block; width: 100%;
+    opacity: 0;
+    animation: cardReveal 0.4s ease forwards;
+    position: relative; overflow: hidden;
   }
-  .active-stat-card.boss-card { border-color: rgba(196,58,58,0.4); }
-  .active-stat-card.elite-card { border-color: rgba(196,147,58,0.35); }
+  /* Left category bar */
+  .active-stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--border);
+  }
+  .active-stat-card.boss-card {
+    border-color: rgba(196,58,58,0.3);
+    animation: cardReveal 0.4s ease forwards, bossGlow 4s ease-in-out 0.6s infinite;
+  }
+  .active-stat-card.boss-card::before { background: rgba(196,58,58,0.7); }
+  .active-stat-card.elite-card {
+    border-color: rgba(196,147,58,0.25);
+    animation: cardReveal 0.4s ease forwards, eliteGlow 5s ease-in-out 0.6s infinite;
+  }
+  .active-stat-card.elite-card::before { background: rgba(196,147,58,0.6); }
 
   .active-card-header {
     display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    padding-left: 6px;
   }
   .active-card-name {
     font-family: 'Cinzel', serif; font-size: 15px; font-weight: 700;
     color: var(--text); flex: 1;
   }
   .active-card-count {
-    font-family: 'Share Tech Mono', monospace; font-size: 11px;
-    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted);
   }
   .active-stat-row {
     display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
@@ -958,11 +1048,10 @@
   }
   .active-ability b { color: var(--accent); }
   .active-divider {
-    border: none; border-top: 1px solid var(--border);
-    margin: 8px 0;
+    border: none; border-top: 1px solid var(--border); margin: 8px 0;
   }
   .active-equipment {
-    font-size: 12px; color: var(--muted); font-style: italic; margin-top: 6px;
+    font-size: 12px; color: var(--muted); font-style: italic; margin-top: 6px; padding-left: 6px;
   }
 
   /* ===== LOOT SECTION ===== */
@@ -998,10 +1087,14 @@
   .pin-overlay {
     display: none;
     position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.92);
     align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
   }
-  .pin-overlay.open { display: flex; }
+  .pin-overlay.open {
+    display: flex;
+    animation: fadeIn 0.25s ease forwards;
+  }
   .pin-box {
     background: var(--card);
     border: 1px solid var(--border);
@@ -1009,10 +1102,26 @@
     padding: 32px 40px;
     text-align: center;
     min-width: 280px;
+    animation: scaleIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards;
+    position: relative; overflow: hidden;
+  }
+  /* Ornamental top border */
+  .pin-box::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: shimmer 3s linear infinite;
+    background-size: 200% auto;
   }
   .pin-box h2 {
     font-family: 'Cinzel', serif; font-size: 16px; color: var(--accent);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+    text-shadow: 0 0 20px rgba(196,147,58,0.4);
+  }
+  .pin-box .pin-rune {
+    font-size: 28px; margin-bottom: 6px; display: block;
+    animation: runeRotate 8s linear infinite;
+    display: inline-block;
   }
   .pin-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
   .pin-dots {
@@ -1020,9 +1129,14 @@
   }
   .pin-dot {
     width: 12px; height: 12px; border-radius: 50%;
-    background: var(--border); transition: background 0.15s;
+    background: var(--border); transition: background 0.15s, transform 0.15s;
+    border: 1px solid rgba(255,255,255,0.05);
   }
-  .pin-dot.filled { background: var(--accent); }
+  .pin-dot.filled {
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(196,147,58,0.6);
+    animation: dotPop 0.2s ease forwards;
+  }
   .pin-keypad {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
     margin-bottom: 12px;
@@ -1033,10 +1147,18 @@
     font-family: 'Share Tech Mono', monospace; font-size: 16px;
     color: var(--text); cursor: pointer;
     transition: all 0.15s;
+    position: relative; overflow: hidden;
   }
-  .pin-key:hover { border-color: var(--accent); color: var(--accent); }
+  .pin-key:hover {
+    border-color: var(--accent); color: var(--accent);
+    background: rgba(196,147,58,0.08);
+    box-shadow: 0 0 10px rgba(196,147,58,0.15);
+  }
+  .pin-key:active { transform: scale(0.94); }
   .pin-key.wide { grid-column: span 3; }
   .pin-error { color: #c43a3a; font-size: 12px; min-height: 18px; }
+  .pin-box.shake { animation: shake 0.4s ease; }
+  .pin-box.success { animation: pinSuccess 0.4s ease; border-color: rgba(58,138,80,0.5); }
   .pin-bypass {
     margin-top: 10px; font-size: 11px; color: var(--muted);
     cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
@@ -1054,6 +1176,36 @@
   }
   .admin-badge.locked { background: rgba(122,122,122,0.1); border-color: var(--border); color: var(--muted); }
 
+  /* ===== LEVEL-UP TOAST ===== */
+  #levelup-toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    z-index: 400; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .toast-item {
+    background: rgba(22,26,18,0.97);
+    border: 1px solid rgba(58,138,80,0.5);
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #7ab87a;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 16px rgba(58,138,80,0.15);
+    animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  .toast-item.out { animation: toastOut 0.3s ease forwards; }
+  .toast-item span { color: var(--accent); }
+
+  /* EXP bar smooth transition */
+  .exp-bar-fill, .sc-exp-fill {
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* char source card slide-in */
+  .char-source-card {
+    animation: fadeSlideUp 0.2s ease both;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1064,8 +1216,9 @@
 
 <!-- ===== PIN OVERLAY ===== -->
 <div id="pin-overlay" class="pin-overlay">
-  <div class="pin-box">
-    <h2>🔒 Admin Access</h2>
+  <div class="pin-box" id="pin-box">
+    <span class="pin-rune">⚔</span>
+    <h2>Admin Access</h2>
     <p>Enter the GM PIN to edit EXP</p>
     <div class="pin-dots">
       <div class="pin-dot" id="pd0"></div>
@@ -1091,6 +1244,9 @@
     <div class="pin-bypass" onclick="pinBypass()">Continue as viewer (read-only)</div>
   </div>
 </div>
+
+<!-- ===== LEVEL-UP TOAST CONTAINER ===== -->
+<div id="levelup-toast"></div>
 
 <!-- ===== ACTIVE ENCOUNTER OVERLAY ===== -->
 <div id="active-enc-overlay" class="encounter-active-overlay">
@@ -1876,6 +2032,7 @@ function buildEnemyCard(e) {
   const div = document.createElement('div');
   div.className = 'enemy-card';
   div.dataset.name = e.name;
+  div.dataset.cat = e.cat;
 
   const tierLabel  = `Tier ${e.tier}`;
   const catLabel   = e.cat.charAt(0).toUpperCase() + e.cat.slice(1);
@@ -2150,7 +2307,7 @@ function activateEncounter() {
     return order[a.enemy.cat] - order[b.enemy.cat];
   });
 
-  sorted.forEach(r => {
+  sorted.forEach((r, idx) => {
     const e = r.enemy;
     const cardCls = e.cat === 'boss' ? 'boss-card' : e.cat === 'elite' ? 'elite-card' : '';
     const catCls  = `badge-${e.cat}`;
@@ -2192,6 +2349,7 @@ function activateEncounter() {
       </div>
       <div class="active-equipment">⚙ ${e.equipment}</div>
     `;
+    card.style.animationDelay = `${idx * 0.07}s`;
     body.appendChild(card);
   });
 
@@ -2336,11 +2494,25 @@ function adjustExp(i, delta) {
 
 function levelUp(i) {
   if (characters[i].exp >= 10) {
+    const name = characters[i].name;
     characters[i].exp = 0;
     characters[i].lvl++;
     renderCharacterSource();
     renderSessionList();
+    showLevelUpToast(name, characters[i].lvl);
   }
+}
+
+function showLevelUpToast(name, newLvl) {
+  const container = document.getElementById('levelup-toast');
+  const toast = document.createElement('div');
+  toast.className = 'toast-item';
+  toast.innerHTML = `<span>${name}</span> — reached Level ${newLvl}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('out');
+    setTimeout(() => toast.remove(), 300);
+  }, 2800);
 }
 
 function showAddChar() {
@@ -2457,11 +2629,19 @@ function pinPress(key) {
   if (pinEntry.length === 4) {
     setTimeout(() => {
       if (pinEntry === ADMIN_PIN) {
-        isAdmin = true;
-        document.getElementById('pin-overlay').classList.remove('open');
-        updateAdminUI();
+        const box = document.getElementById('pin-box');
+        box.classList.add('success');
+        setTimeout(() => {
+          box.classList.remove('success');
+          isAdmin = true;
+          document.getElementById('pin-overlay').classList.remove('open');
+          updateAdminUI();
+        }, 400);
       } else {
         document.getElementById('pin-error').textContent = 'Incorrect PIN';
+        const box = document.getElementById('pin-box');
+        box.classList.add('shake');
+        setTimeout(() => box.classList.remove('shake'), 400);
         pinEntry = '';
         updatePinDots();
       }
